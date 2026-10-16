@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(drawing_engine
     src/main.cpp
     src/Canvas.cpp
+    src/ImageWriter.cpp
 )
 
 target_include_directories(drawing_engine PRIVATE include)
