@@ -9,6 +9,7 @@ add_executable(drawing_engine
     src/main.cpp
     src/Canvas.cpp
     src/ImageWriter.cpp
+    src/Drawing.cpp
 )
 
 target_include_directories(drawing_engine PRIVATE include)
