@@ -11,3 +11,11 @@ void drawLine(
     int y1,
     std::uint32_t color
 );
+
+void drawFilledCircle(
+    Canvas& canvas,
+    int centerX,
+    int centerY,
+    int radius,
+    std::uint32_t color
+);

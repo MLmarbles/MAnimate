@@ -35,3 +35,28 @@ void drawLine(
         y += yIncrement;
     }
 }
+
+
+
+void drawFilledCircle(
+    Canvas& canvas,
+    int centerX,
+    int centerY,
+    int radius,
+    std::uint32_t color
+)
+{
+
+    for (int y = centerY-radius; y <= centerY+radius; ++y) {
+        for (int x = centerX-radius; x <= centerX+radius; ++x) {
+
+            int dx = x - centerX;
+            int dy = y - centerY;
+
+            if (sqrt(dy * dy + dx * dx) <= radius) {
+                canvas.setPixel(x, y, color);
+            }
+        }
+    }
+
+}

@@ -10,20 +10,20 @@ int main()
     Canvas canvas(256, 256);
 
     Color white{255, 255, 255, 255};
-    Color red{255, 0, 0, 255};
+    Color blue{0, 100, 255, 255};
 
     canvas.clear(white.pack());
 
-    drawLine(
+    drawFilledCircle(
         canvas,
-        20, 20,
-        230, 200,
-        red.pack()
+        128, 128,
+        40,
+        blue.pack()
     );
 
-    savePPM(canvas, "line.ppm");
+    savePPM(canvas, "circle.ppm");
 
-    std::cout << "saved line.ppm\n";
+    std::cout << "Saved circle.ppm\n";
 
     return 0;
 }
