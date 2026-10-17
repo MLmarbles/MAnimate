@@ -36,8 +36,6 @@ void drawLine(
     }
 }
 
-
-
 void drawFilledCircle(
     Canvas& canvas,
     int centerX,
@@ -59,4 +57,38 @@ void drawFilledCircle(
         }
     }
 
+}
+
+void drawBrushStroke(
+    Canvas& canvas,
+    int x0,
+    int y0,
+    int x1,
+    int y1,
+    int radius,
+    std::uint32_t color
+)
+{
+    int dx = x1 - x0;
+    int dy = y1 - y0;
+
+    int steps = std::max(std::abs(dx), std::abs(dy));
+
+    if (steps == 0) {
+        drawFilledCircle(canvas, x0, y0, radius, color);
+        return;
+    }
+
+    double xIncrement = static_cast<double>(dx) / steps;
+    double yIncrement = static_cast<double>(dy) / steps;
+
+    double x = static_cast<double>(x0);
+    double y = static_cast<double>(y0);
+
+    for (int i = 0; i <= steps; ++i) {
+
+        drawFilledCircle(canvas, std::round(x), std::round(y), radius, color);
+        x += xIncrement;    
+        y += yIncrement;
+    }
 }

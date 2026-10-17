@@ -19,3 +19,13 @@ void drawFilledCircle(
     int radius,
     std::uint32_t color
 );
+
+void drawBrushStroke(
+    Canvas& canvas,
+    int x0,
+    int y0,
+    int x1,
+    int y1,
+    int radius,
+    std::uint32_t color
+);

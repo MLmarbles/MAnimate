@@ -14,16 +14,17 @@ int main()
 
     canvas.clear(white.pack());
 
-    drawFilledCircle(
+    drawBrushStroke(
         canvas,
-        128, 128,
-        40,
+        30, 40,
+        220, 190,
+        10,
         blue.pack()
     );
 
-    savePPM(canvas, "circle.ppm");
+    savePPM(canvas, "brush.ppm");
 
-    std::cout << "Saved circle.ppm\n";
+    std::cout << "Saved brush.ppm\n";
 
     return 0;
 }
