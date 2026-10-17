@@ -4,27 +4,39 @@
 #include "ImageWriter.hpp"
 
 #include <iostream>
+#include <SDL3/SDL.h>
 
 int main()
 {
-    Canvas canvas(256, 256);
+    bool running = true;
+    SDL_Event event;
 
-    Color white{255, 255, 255, 255};
-    Color blue{0, 100, 255, 255};
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        std::cerr << "SDL failed: " << SDL_GetError() << '\n';
+        return 1;
+    }
 
-    canvas.clear(white.pack());
-
-    drawBrushStroke(
-        canvas,
-        30, 40,
-        220, 190,
-        10,
-        blue.pack()
+    SDL_Window* window = SDL_CreateWindow(
+        "MAnimate",
+        256,
+        256,
+        0
     );
 
-    savePPM(canvas, "brush.ppm");
+    if (window == nullptr) {
+        std::cerr << "Window creation failed: " << SDL_GetError() << '\n';
+        SDL_Quit();
+        return 1;
+    }
 
-    std::cout << "Saved brush.ppm\n";
+    while (running) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                running = false;
+            } 
+        }
+    }
 
-    return 0;
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
