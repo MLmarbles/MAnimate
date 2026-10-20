@@ -17,4 +17,6 @@ class Canvas {
         void setPixel(std::size_t x, std::size_t y, std::uint32_t color);
         std::uint32_t getPixel(std::size_t x, std::size_t y) const;
         void clear(std::uint32_t color);
+
+        const std::vector<std::uint32_t>& getPixels() const;
 };

@@ -29,14 +29,77 @@ int main()
         return 1;
     }
 
+    SDL_Renderer* renderer = SDL_CreateRenderer(
+        window,
+        nullptr
+    );
+
+    if (renderer == nullptr) {
+        std::cerr << "Renderer creation failed: " << SDL_GetError() << '\n';
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
+    Canvas canvas(256, 256);
+    Color white{255, 255, 255, 255};
+    Color red{255, 0, 0, 255};
+    canvas.clear(white.pack());
+
+    drawBrushStroke(
+        canvas,
+        25,
+        25,
+        98,
+        98,
+        5, 
+        red.pack()
+    );
+
+    SDL_Texture* texture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        static_cast<int>(canvas.getWidth()),
+        static_cast<int>(canvas.getHeight())
+    );
+
+    if (texture == nullptr) {
+        std::cerr << "Texture creation failed: " << SDL_GetError() << "\n";
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
+    SDL_UpdateTexture(
+        texture,
+        nullptr,
+        &canvas.getPixels()[0],
+        static_cast<int>(canvas.getWidth() * sizeof(std::uint32_t))
+    );
+
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 running = false;
             } 
         }
+
+        SDL_RenderClear(renderer);
+
+        SDL_RenderTexture(
+            renderer,
+            texture,
+            nullptr,
+            nullptr
+        );
+
+        SDL_RenderPresent(renderer);
     }
 
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }

@@ -36,3 +36,7 @@ void Canvas::clear(std::uint32_t color) {
         pixel = color;
     }
 }
+
+const std::vector<std::uint32_t>& Canvas::getPixels() const {
+    return pixels_;
+}
