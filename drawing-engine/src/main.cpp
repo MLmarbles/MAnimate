@@ -6,6 +6,8 @@
 #include <iostream>
 #include <SDL3/SDL.h>
 
+#include "BrushTool.hpp"
+
 int main()
 {
     bool running = true;
@@ -65,6 +67,7 @@ int main()
     bool drawing = false;
     float prevX = 0.0f;
     float prevY = 0.0f;
+    BrushTool brush;
 
     while (running) {
         while (SDL_PollEvent(&event)) {
@@ -73,37 +76,22 @@ int main()
             }
             
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                drawing = true;
-                prevX = event.button.x;
-                prevY = event.button.y;
+                brush.onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
             }
             if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
-                drawing = false;
+                brush.onMouseUp(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
             }
             if (event.type == SDL_EVENT_MOUSE_MOTION) {
-                if (drawing) {
-                    drawBrushStroke(
-                        canvas,
-                        prevX,
-                        prevY,
-                        event.motion.x,
-                        event.motion.y,
-                        5,
-                        red.pack()
-                    );
-
-                    prevX = event.motion.x;
-                    prevY = event.motion.y;
-                }
+                brush.onMouseMove(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
             }
-
-                SDL_UpdateTexture(
-                    texture,
-                    nullptr,
-                    &canvas.getPixels()[0],
-                    static_cast<int>(canvas.getWidth() * sizeof(std::uint32_t))
-                );
         }
+
+        SDL_UpdateTexture(
+            texture,
+            nullptr,
+            &canvas.getPixels()[0],
+            static_cast<int>(canvas.getWidth() * sizeof(std::uint32_t))
+        );
 
         SDL_RenderClear(renderer);
 
