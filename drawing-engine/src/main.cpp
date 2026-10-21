@@ -46,16 +46,6 @@ int main()
     Color red{255, 0, 0, 255};
     canvas.clear(white.pack());
 
-    drawBrushStroke(
-        canvas,
-        25,
-        25,
-        98,
-        98,
-        5, 
-        red.pack()
-    );
-
     SDL_Texture* texture = SDL_CreateTexture(
         renderer,
         SDL_PIXELFORMAT_RGBA8888,
@@ -72,18 +62,47 @@ int main()
         return 1;
     }
 
-    SDL_UpdateTexture(
-        texture,
-        nullptr,
-        &canvas.getPixels()[0],
-        static_cast<int>(canvas.getWidth() * sizeof(std::uint32_t))
-    );
+    bool drawing = false;
+    float prevX = 0.0f;
+    float prevY = 0.0f;
 
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 running = false;
-            } 
+            }
+            
+            if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+                drawing = true;
+                prevX = event.button.x;
+                prevY = event.button.y;
+            }
+            if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+                drawing = false;
+            }
+            if (event.type == SDL_EVENT_MOUSE_MOTION) {
+                if (drawing) {
+                    drawBrushStroke(
+                        canvas,
+                        prevX,
+                        prevY,
+                        event.motion.x,
+                        event.motion.y,
+                        5,
+                        red.pack()
+                    );
+
+                    prevX = event.motion.x;
+                    prevY = event.motion.y;
+                }
+            }
+
+                SDL_UpdateTexture(
+                    texture,
+                    nullptr,
+                    &canvas.getPixels()[0],
+                    static_cast<int>(canvas.getWidth() * sizeof(std::uint32_t))
+                );
         }
 
         SDL_RenderClear(renderer);
