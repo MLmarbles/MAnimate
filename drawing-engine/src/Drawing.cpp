@@ -52,7 +52,9 @@ void drawFilledCircle(
             int dy = y - centerY;
 
             if (sqrt(dy * dy + dx * dx) <= radius) {
-                canvas.setPixel(x, y, color);
+                if (x >= 0 && y >= 0 && x < canvas.getWidth() && y < canvas.getHeight()) {
+                    canvas.setPixel(x, y, color);
+                }
             }
         }
     }
