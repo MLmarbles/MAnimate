@@ -13,6 +13,7 @@ add_executable(drawing_engine
     src/Drawing.cpp
     src/BrushTool.cpp
     src/EraserTool.cpp
+    src/History.cpp
 )
 
 target_include_directories(drawing_engine PRIVATE include)

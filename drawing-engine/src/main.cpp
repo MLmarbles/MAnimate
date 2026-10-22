@@ -8,6 +8,7 @@
 
 #include "BrushTool.hpp"
 #include <EraserTool.hpp>
+#include "History.hpp"
 
 int main()
 {
@@ -69,6 +70,7 @@ int main()
     EraserTool eraser;
     Tool* activeTool = nullptr;
 
+    History history;
 
     while (running) {
         while (SDL_PollEvent(&event)) {
@@ -83,8 +85,10 @@ int main()
                 if (event.button.button == SDL_BUTTON_RIGHT) {
                     activeTool = &eraser;
                 }
+
                 if (activeTool != nullptr) {
                     activeTool->onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                    history.save(canvas);
                 }
             }
             if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
@@ -96,6 +100,17 @@ int main()
             if (event.type == SDL_EVENT_MOUSE_MOTION) {
                 if (activeTool != nullptr) {
                     activeTool->onMouseMove(canvas, static_cast<int>(event.motion.x), static_cast<int>(event.motion.y));
+                }
+            }
+            if (event.type == SDL_EVENT_KEY_DOWN) {
+                bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
+
+                if (ctrl && event.key.key == SDLK_Z) {
+                    history.undo(canvas);
+                }
+
+                if (ctrl && event.key.key == SDLK_Y) {
+                    history.redo(canvas);
                 }
             }
         }
