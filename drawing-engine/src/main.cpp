@@ -7,6 +7,7 @@
 #include <SDL3/SDL.h>
 
 #include "BrushTool.hpp"
+#include <EraserTool.hpp>
 
 int main()
 {
@@ -68,6 +69,7 @@ int main()
     float prevX = 0.0f;
     float prevY = 0.0f;
     BrushTool brush;
+    EraserTool eraser;
 
     while (running) {
         while (SDL_PollEvent(&event)) {
@@ -76,13 +78,28 @@ int main()
             }
             
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                brush.onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                    brush.onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                }
+                if (event.button.button == SDL_BUTTON_RIGHT) {
+                    eraser.onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                }
             }
             if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
-                brush.onMouseUp(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                    brush.onMouseUp(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                }
+                if (event.button.button == SDL_BUTTON_RIGHT) {
+                    eraser.onMouseUp(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                }
             }
             if (event.type == SDL_EVENT_MOUSE_MOTION) {
-                brush.onMouseMove(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                if (event.motion.state & SDL_BUTTON_LMASK) {
+                    brush.onMouseMove(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                }
+                if (event.motion.state & SDL_BUTTON_RMASK) {
+                    eraser.onMouseMove(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                }
             }
         }
 

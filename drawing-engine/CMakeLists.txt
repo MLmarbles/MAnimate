@@ -12,6 +12,7 @@ add_executable(drawing_engine
     src/ImageWriter.cpp
     src/Drawing.cpp
     src/BrushTool.cpp
+    src/EraserTool.cpp
 )
 
 target_include_directories(drawing_engine PRIVATE include)
