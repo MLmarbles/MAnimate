@@ -65,11 +65,10 @@ int main()
         return 1;
     }
 
-    bool drawing = false;
-    float prevX = 0.0f;
-    float prevY = 0.0f;
     BrushTool brush;
     EraserTool eraser;
+    Tool* activeTool = nullptr;
+
 
     while (running) {
         while (SDL_PollEvent(&event)) {
@@ -79,26 +78,24 @@ int main()
             
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                 if (event.button.button == SDL_BUTTON_LEFT) {
-                    brush.onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                    activeTool = &brush;
                 }
                 if (event.button.button == SDL_BUTTON_RIGHT) {
-                    eraser.onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                    activeTool = &eraser;
+                }
+                if (activeTool != nullptr) {
+                    activeTool->onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
                 }
             }
             if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
-                if (event.button.button == SDL_BUTTON_LEFT) {
-                    brush.onMouseUp(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
-                }
-                if (event.button.button == SDL_BUTTON_RIGHT) {
-                    eraser.onMouseUp(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                if (activeTool != nullptr) {
+                    activeTool->onMouseUp(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                    activeTool = nullptr;
                 }
             }
             if (event.type == SDL_EVENT_MOUSE_MOTION) {
-                if (event.motion.state & SDL_BUTTON_LMASK) {
-                    brush.onMouseMove(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
-                }
-                if (event.motion.state & SDL_BUTTON_RMASK) {
-                    eraser.onMouseMove(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                if (activeTool != nullptr) {
+                    activeTool->onMouseMove(canvas, static_cast<int>(event.motion.x), static_cast<int>(event.motion.y));
                 }
             }
         }
