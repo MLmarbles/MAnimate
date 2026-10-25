@@ -39,3 +39,19 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
