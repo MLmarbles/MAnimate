@@ -1,18 +1,10 @@
 from fastapi import FastAPI
-
-import models
-from database import engine, session, base
+from database import engine, base
+from routers.UserRouter import router as user_router
 
 base.metadata.create_all(bind=engine)
 app = FastAPI()
-
-def get_db():
-    db = session()
-
-    try:
-        yield db
-    finally:
-        db.close()
+app.include_router(user_router)
 
 @app.get("/")
 def home():

@@ -15,3 +15,11 @@ session = sessionmaker(
 )
 
 base = declarative_base()
+
+def get_db():
+    db = session()
+
+    try:
+        yield db
+    finally:
+        db.close()
