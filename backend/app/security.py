@@ -9,6 +9,8 @@ from fastapi import Depends, HTTPException, status
 from database import get_db
 import models
 from repository import UserRepository
+import secrets
+import hashlib
 
 load_dotenv()
 
@@ -17,6 +19,12 @@ ALGORITHM = os.getenv("JWT_ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 bearer = HTTPBearer()
 hasher = PasswordHash.recommended()
+
+def generate_refresh_token():
+    return secrets.token_urlsafe(32)
+
+def hash_refresh_token(token: str):
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 def hash_password(password):
     return hasher.hash(password)
