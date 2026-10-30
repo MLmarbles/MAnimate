@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, func
 from database import base
+from sqlalchemy.orm import relationship
 
 class Project(base):
     __tablename__ = "Project"
@@ -23,3 +24,7 @@ class Project(base):
         onupdate=func.now(),
         nullable=False
         )
+
+    owner = relationship("User", back_populates="projects")
+
+    layers = relationship("Layer", back_populates="owner", cascade="all, delete-orphan")
