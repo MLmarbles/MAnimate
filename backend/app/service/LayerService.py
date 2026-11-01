@@ -2,12 +2,14 @@ from sqlalchemy.orm import Session
 from dto.LayerDto import LayerUpdate
 from models.User import User
 from repository import LayerRepository
-from service import ProjectService
+from service import ProjectService, StorageService
 
 
 class LayerNotFound(Exception):
     pass
 
+class ContentNotFound(Exception):
+    pass
 
 def create(db: Session, project_id: int, name: str, user: User):
     try:
@@ -58,3 +60,33 @@ def delete(db: Session, project_id: int, layer_id: int, user: User):
     except Exception:
         db.rollback()
         raise
+
+def save_content(
+    db: Session,
+    project_id: int,
+    layer_id: int,
+    data: bytes,
+    user: User,
+):
+    layer = get(db, project_id, layer_id, user)
+
+    try:
+        storage_key = StorageService.save_layer(project_id, layer_id, data)
+        LayerRepository.update_layer(db, layer, {"storage_key": storage_key})
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+def get_content(
+    db: Session,
+    project_id: int,
+    layer_id: int,
+    user: User,
+):
+    layer = get(db, project_id, layer_id, user)
+
+    if layer.storage_key is None:
+        raise ContentNotFound()
+
+    return StorageService.get_layer(layer.storage_key)
