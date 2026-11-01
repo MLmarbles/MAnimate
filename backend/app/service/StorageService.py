@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import uuid4
 
 STORAGE_ROOT = Path("storage")
 
@@ -13,11 +14,13 @@ def save_layer(project_id: int, layer_id: int, data: bytes) -> str:
 
     directory.mkdir(parents=True, exist_ok=True)
 
+    file_id = uuid4().hex
+
     storage_key = (
         Path("projects")
         / str(project_id)
         / "layers"
-        / f"{layer_id}.png"
+        / f"{layer_id}_{file_id}.png"
     )
 
     file_path = STORAGE_ROOT / storage_key

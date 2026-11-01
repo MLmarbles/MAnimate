@@ -69,14 +69,25 @@ def save_content(
     user: User,
 ):
     layer = get(db, project_id, layer_id, user)
+    old_storage_key = layer.storage_key
+    new_storage_key = None
 
     try:
-        storage_key = StorageService.save_layer(project_id, layer_id, data)
-        LayerRepository.update_layer(db, layer, {"storage_key": storage_key})
+        new_storage_key = StorageService.save_layer(project_id, layer_id, data)
+        LayerRepository.update_layer(db, layer, {"storage_key": new_storage_key})
         db.commit()
     except Exception:
         db.rollback()
+        if new_storage_key is not None:
+            StorageService.delete_layer(new_storage_key)
         raise
+
+    if old_storage_key is not None:
+        try:
+            StorageService.delete_layer(old_storage_key)
+        except Exception:
+            # cleanup later
+            pass
 
 def get_content(
     db: Session,
