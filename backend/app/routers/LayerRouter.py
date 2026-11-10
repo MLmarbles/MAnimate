@@ -50,6 +50,30 @@ def list_layers(
         ) from None
 
 
+@router.put(
+    "/reorder",
+    response_model=list[LayerDto.LayerResponse],
+)
+def reorder_layers(
+    project_id: int,
+    order: LayerDto.LayerReorder,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return LayerService.reorder(db, project_id, order.layer_ids, current_user)
+    except ProjectService.ProjectNotFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        ) from None
+    except LayerService.InvalidLayerOrder:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="layer_ids must contain every layer in the project exactly once",
+        ) from None
+
+
 @router.get(
     "/{layer_id}",
     response_model=LayerDto.LayerResponse,

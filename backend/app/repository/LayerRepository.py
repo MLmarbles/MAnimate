@@ -36,6 +36,12 @@ def list_layers(db: Session, project_id: int):
     )
 
 
+def reorder_layers(db: Session, layers: list[Layer]):
+    for position, layer in enumerate(layers):
+        layer.position = position
+    db.flush()
+
+
 def update_layer(db: Session, layer: Layer, changes: dict):
     for field, value in changes.items():
         setattr(layer, field, value)

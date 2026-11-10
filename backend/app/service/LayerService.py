@@ -8,6 +8,9 @@ from service import ProjectService, StorageService
 class LayerNotFound(Exception):
     pass
 
+class InvalidLayerOrder(Exception):
+    pass
+
 class ContentNotFound(Exception):
     pass
 
@@ -39,6 +42,24 @@ def list_layers(db: Session, project_id: int, user: User):
     return LayerRepository.list_layers(db, project_id)
 
 
+def reorder(db: Session, project_id: int, layer_ids: list[int], user: User):
+    try:
+        ProjectService.get(db, project_id, user)
+        layers = LayerRepository.list_layers(db, project_id)
+        layers_by_id = {layer.id: layer for layer in layers}
+        if len(layer_ids) != len(layers) or set(layer_ids) != set(layers_by_id):
+            raise InvalidLayerOrder()
+
+        ordered_layers = [layers_by_id[layer_id] for layer_id in layer_ids]
+        LayerRepository.reorder_layers(db, ordered_layers)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return ordered_layers
+
+
 def update(db: Session, project_id: int, layer_id: int, changes: LayerUpdate, user: User):
     try:
         layer = get(db, project_id, layer_id, user)
@@ -53,13 +74,22 @@ def update(db: Session, project_id: int, layer_id: int, changes: LayerUpdate, us
 
 
 def delete(db: Session, project_id: int, layer_id: int, user: User):
+    storage_key = None
     try:
         layer = get(db, project_id, layer_id, user)
+        storage_key = layer.storage_key
         LayerRepository.delete_layer(db, layer)
         db.commit()
     except Exception:
         db.rollback()
         raise
+
+    if storage_key is not None:
+        try:
+            StorageService.delete_layer(storage_key)
+        except Exception:
+            # cleanup later
+            pass
 
 def save_content(
     db: Session,

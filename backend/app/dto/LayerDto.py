@@ -5,6 +5,12 @@ class LayerCreate(BaseModel):
     name: str
 
 
+class LayerReorder(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    layer_ids: list[int]
+
+
 class LayerUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
