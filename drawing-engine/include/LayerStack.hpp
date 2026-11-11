@@ -14,4 +14,6 @@ class LayerStack{
         Layer& getLayer(int index);
         Canvas composite() const;
         void moveLayer(int fromIndex, int toIndex);
+        void removeLayer(int index);
+        int getLayerIndexes();
 };

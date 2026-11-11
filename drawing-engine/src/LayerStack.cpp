@@ -73,3 +73,15 @@ void LayerStack::moveLayer(int fromIndex, int toIndex) {
         );
     }
 }
+
+void LayerStack::removeLayer(int index) {
+    if (index > layers_.size()-1) {
+        throw std::out_of_range("Invalid layer index");
+    }
+
+    layers_.erase(layers_.begin() + index);
+}
+
+int LayerStack::getLayerIndexes() {
+    return layers_.size()-1;
+}

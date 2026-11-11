@@ -10,6 +10,7 @@
 #include <EraserTool.hpp>
 #include "History.hpp"
 #include <LayerStack.hpp>
+#include <algorithm>
 
 int main()
 {
@@ -53,13 +54,8 @@ int main()
     LayerStack layerStack(800, 600);
 
     layerStack.addLayer();
-    layerStack.addLayer();
 
     layerStack.getLayer(0).getCanvas().clear(
-        Color{0, 0, 0, 0}.pack()
-    );
-
-    layerStack.getLayer(1).getCanvas().clear(
         Color{0, 0, 0, 0}.pack()
     );
 
@@ -96,17 +92,24 @@ int main()
             if (event.type == SDL_EVENT_QUIT) {
                 running = false;
             }
+
             if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) {
-                if (event.key.key == SDLK_1) {
-                    activeLayerIndex = 0;
-                    needsRedraw = true;
+                bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
+
+                if (!ctrl && event.key.key == SDLK_DOWN) {
+                    if (activeLayerIndex > 0) {
+                        activeLayerIndex--;
+                        needsRedraw = true;
+                    }
                 }
 
-                if (event.key.key == SDLK_2) {
-                    activeLayerIndex = 1;
-                    needsRedraw = true;
+                if (!ctrl && event.key.key == SDLK_UP) {
+                    if (activeLayerIndex < layerStack.getLayerIndexes()) {
+                        activeLayerIndex++;
+                        needsRedraw = true;
+                    }
                 }
-
+                
                 if (event.key.key == SDLK_LEFTBRACKET) {
                     layerStack.getLayer(activeLayerIndex).setOpacity(-0.1);
                     needsRedraw = true;
@@ -122,12 +125,33 @@ int main()
                     needsRedraw = true;
                 }
 
-                bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
+                if (event.key.key == SDLK_N) {
+                    layerStack.addLayer();
+                    int layerIndexes = layerStack.getLayerIndexes();
+
+                    layerStack.getLayer(layerIndexes).getCanvas().clear(
+                        Color{0, 0, 0, 0}.pack()
+                    );
+
+                    activeLayerIndex = layerIndexes;
+                    needsRedraw = true;
+                }
+
+                if (event.key.key == SDLK_DELETE) {
+                    if (layerStack.getLayerIndexes() > 0) {
+                        layerStack.removeLayer(activeLayerIndex);
+                        activeLayerIndex = std::min(
+                            activeLayerIndex,
+                            layerStack.getLayerIndexes()
+                        );
+                        needsRedraw = true;
+                    }
+                }
 
                 if (ctrl && event.key.key == SDLK_UP) {
                     int newIndex = activeLayerIndex + 1;
 
-                    if (newIndex < 2) {
+                    if (newIndex <= layerStack.getLayerIndexes()) {
                         layerStack.moveLayer(activeLayerIndex, newIndex);
                         activeLayerIndex = newIndex;
                         needsRedraw = true;
