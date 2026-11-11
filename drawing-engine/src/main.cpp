@@ -85,6 +85,8 @@ int main()
     EraserTool eraser;
     Tool* activeTool = nullptr;
 
+    bool needsRedraw = true;
+
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
@@ -93,22 +95,27 @@ int main()
             if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) {
                 if (event.key.key == SDLK_1) {
                     activeLayerIndex = 0;
+                    needsRedraw = true;
                 }
 
                 if (event.key.key == SDLK_2) {
                     activeLayerIndex = 1;
+                    needsRedraw = true;
                 }
 
                 if (event.key.key == SDLK_LEFTBRACKET) {
                     layerStack.getLayer(activeLayerIndex).setOpacity(-0.1);
+                    needsRedraw = true;
                 }
 
                 if (event.key.key == SDLK_RIGHTBRACKET) {
                     layerStack.getLayer(activeLayerIndex).setOpacity(0.1);
+                    needsRedraw = true;
                 }
 
-                if (event.key.key == SDLK_V && activeLayerIndex != 0) {
+                if (event.key.key == SDLK_V) {
                     layerStack.getLayer(activeLayerIndex).toggleVisible();
+                    needsRedraw = true;
                 }
 
                 bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
@@ -119,6 +126,7 @@ int main()
                     if (newIndex < 2) {
                         layerStack.moveLayer(activeLayerIndex, newIndex);
                         activeLayerIndex = newIndex;
+                        needsRedraw = true;
                     }
                 }
 
@@ -129,6 +137,7 @@ int main()
                         layerStack.moveLayer(activeLayerIndex, newIndex);
                         activeLayerIndex = newIndex;
                     }
+                    needsRedraw = true;
                 }
 
                 SDL_SetWindowTitle(
@@ -149,6 +158,7 @@ int main()
                 if (activeTool != nullptr) {
                     layerStack.getLayer(activeLayerIndex).getHistory().save(canvas);
                     activeTool->onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                    needsRedraw = true;
                 }
             }
             if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
@@ -156,12 +166,14 @@ int main()
                 if (activeTool != nullptr) {
                     activeTool->onMouseUp(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
                     activeTool = nullptr;
+                    needsRedraw = true;
                 }
             }
             if (event.type == SDL_EVENT_MOUSE_MOTION) {
                 Canvas& canvas = layerStack.getLayer(activeLayerIndex).getCanvas();
                 if (activeTool != nullptr) {
                     activeTool->onMouseMove(canvas, static_cast<int>(event.motion.x), static_cast<int>(event.motion.y));
+                    needsRedraw = true;
                 }
             }
             if (event.type == SDL_EVENT_KEY_DOWN) {
@@ -170,39 +182,44 @@ int main()
                 if (ctrl && event.key.key == SDLK_Z) {
                     Layer& layer = layerStack.getLayer(activeLayerIndex);
                     layer.getHistory().undo(layer.getCanvas());
+                    needsRedraw = true;
                 }
 
                 if (ctrl && event.key.key == SDLK_Y) {
                     Layer& layer = layerStack.getLayer(activeLayerIndex);
                     layer.getHistory().redo(layer.getCanvas());
+                    needsRedraw = true;
                 }
             }
         }
 
-        Canvas composite = layerStack.composite();
+        if (needsRedraw) {
+            Canvas composite = layerStack.composite();
 
-        Canvas displayCanvas(800, 600);
-        displayCanvas.clear(Color{255, 255, 255, 255}.pack());
+            Canvas displayCanvas(800, 600);
+            displayCanvas.clear(Color{255, 255, 255, 255}.pack());
 
-        for (std::size_t y = 0; y < composite.getHeight(); ++y) {
-            for (std::size_t x = 0; x < composite.getWidth(); ++x) {
-                Color top = Color::unpack(composite.getPixel(x, y));
-                Color bottom = Color::unpack(displayCanvas.getPixel(x, y));
+            for (std::size_t y = 0; y < composite.getHeight(); ++y) {
+                for (std::size_t x = 0; x < composite.getWidth(); ++x) {
+                    Color top = Color::unpack(composite.getPixel(x, y));
+                    Color bottom = Color::unpack(displayCanvas.getPixel(x, y));
 
-                Color result = Color::blend(top, bottom, 1.0f);
+                    Color result = Color::blend(top, bottom, 1.0f);
 
-                displayCanvas.setPixel(x, y, result.pack());
+                    displayCanvas.setPixel(x, y, result.pack());
+                }
             }
-        }
 
-        SDL_UpdateTexture(
-            texture,
-            nullptr,
-            displayCanvas.getPixels().data(),
-            static_cast<int>(
-                displayCanvas.getWidth() * sizeof(std::uint32_t)
-            )
-        );
+            SDL_UpdateTexture(
+                texture,
+                nullptr,
+                displayCanvas.getPixels().data(),
+                static_cast<int>(
+                    displayCanvas.getWidth() * sizeof(std::uint32_t)
+                )
+            );
+            needsRedraw = false;
+        }
 
         SDL_RenderClear(renderer);
 
