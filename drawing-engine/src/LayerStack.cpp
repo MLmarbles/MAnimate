@@ -1,6 +1,8 @@
 #include "LayerStack.hpp"
 #include "Layer.hpp"
 #include <Color.hpp>
+#include <algorithm>
+#include <stdexcept>
 
 LayerStack::LayerStack(int width, int height)
     : width_(width), height_(height) {}
@@ -43,4 +45,31 @@ Canvas LayerStack::composite() const {
     }
 
     return result;
+}
+
+void LayerStack::moveLayer(int fromIndex, int toIndex) {
+    int count = static_cast<int>(layers_.size());
+
+    if (fromIndex < 0 || fromIndex >= count ||
+        toIndex < 0 || toIndex >= count) {
+        throw std::out_of_range("Invalid layer index");
+    }
+
+    if (fromIndex == toIndex) {
+        return;
+    }
+
+    if (fromIndex < toIndex) {
+        std::rotate(
+            layers_.begin() + fromIndex,
+            layers_.begin() + fromIndex + 1,
+            layers_.begin() + toIndex + 1
+        );
+    } else {
+        std::rotate(
+            layers_.begin() + toIndex,
+            layers_.begin() + fromIndex,
+            layers_.begin() + fromIndex + 1
+        );
+    }
 }

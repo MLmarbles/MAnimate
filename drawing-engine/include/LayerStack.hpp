@@ -13,4 +13,5 @@ class LayerStack{
         void addLayer();
         Layer& getLayer(int index);
         Canvas composite() const;
+        void moveLayer(int fromIndex, int toIndex);
 };

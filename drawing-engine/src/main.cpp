@@ -52,7 +52,7 @@ int main()
     layerStack.addLayer();
 
     layerStack.getLayer(0).getCanvas().clear(
-        Color{255, 255, 255, 255}.pack()
+        Color{0, 0, 0, 0}.pack()
     );
 
     layerStack.getLayer(1).getCanvas().clear(
@@ -111,6 +111,26 @@ int main()
                     layerStack.getLayer(activeLayerIndex).toggleVisible();
                 }
 
+                bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
+
+                if (ctrl && event.key.key == SDLK_UP) {
+                    int newIndex = activeLayerIndex + 1;
+
+                    if (newIndex < 2) {
+                        layerStack.moveLayer(activeLayerIndex, newIndex);
+                        activeLayerIndex = newIndex;
+                    }
+                }
+
+                if (ctrl && event.key.key == SDLK_DOWN) {
+                    int newIndex = activeLayerIndex - 1;
+
+                    if (newIndex >= 0) {
+                        layerStack.moveLayer(activeLayerIndex, newIndex);
+                        activeLayerIndex = newIndex;
+                    }
+                }
+
                 SDL_SetWindowTitle(
                     window,
                     ("MAnimate - Layer " + std::to_string(activeLayerIndex)).c_str()
@@ -161,11 +181,27 @@ int main()
 
         Canvas composite = layerStack.composite();
 
+        Canvas displayCanvas(800, 600);
+        displayCanvas.clear(Color{255, 255, 255, 255}.pack());
+
+        for (std::size_t y = 0; y < composite.getHeight(); ++y) {
+            for (std::size_t x = 0; x < composite.getWidth(); ++x) {
+                Color top = Color::unpack(composite.getPixel(x, y));
+                Color bottom = Color::unpack(displayCanvas.getPixel(x, y));
+
+                Color result = Color::blend(top, bottom, 1.0f);
+
+                displayCanvas.setPixel(x, y, result.pack());
+            }
+        }
+
         SDL_UpdateTexture(
             texture,
             nullptr,
-            composite.getPixels().data(),
-            static_cast<int>(800 * sizeof(std::uint32_t))
+            displayCanvas.getPixels().data(),
+            static_cast<int>(
+                displayCanvas.getWidth() * sizeof(std::uint32_t)
+            )
         );
 
         SDL_RenderClear(renderer);

@@ -5,7 +5,7 @@ Layer::Layer(int width, int height)
     : canvas_(width, height) {}
 
 void Layer::setOpacity(float opacity) {
-    if (opacity_ >= 1.0f || opacity_ <= 0) {
+    if (opacity_ > 1.0f || opacity_ < 0) {
         return;
     }
 
