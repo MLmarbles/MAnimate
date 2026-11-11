@@ -59,7 +59,7 @@ int main()
         Color{0, 0, 0, 0}.pack()
     );
 
-    int activeLayerIndex = 1;
+    int activeLayerIndex = 0;
     
     Color white{255, 255, 255, 255};
     Color red{255, 0, 0, 255};
@@ -85,14 +85,11 @@ int main()
     EraserTool eraser;
     Tool* activeTool = nullptr;
 
-    History history;
-
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 running = false;
             }
-            
             if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) {
                 if (event.key.key == SDLK_1) {
                     activeLayerIndex = 0;
@@ -100,6 +97,18 @@ int main()
 
                 if (event.key.key == SDLK_2) {
                     activeLayerIndex = 1;
+                }
+
+                if (event.key.key == SDLK_LEFTBRACKET) {
+                    layerStack.getLayer(activeLayerIndex).setOpacity(-0.1);
+                }
+
+                if (event.key.key == SDLK_RIGHTBRACKET) {
+                    layerStack.getLayer(activeLayerIndex).setOpacity(0.1);
+                }
+
+                if (event.key.key == SDLK_V && activeLayerIndex != 0) {
+                    layerStack.getLayer(activeLayerIndex).toggleVisible();
                 }
 
                 SDL_SetWindowTitle(
@@ -118,8 +127,8 @@ int main()
                 }
 
                 if (activeTool != nullptr) {
+                    layerStack.getLayer(activeLayerIndex).getHistory().save(canvas);
                     activeTool->onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
-                    history.save(canvas);
                 }
             }
             if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
@@ -139,13 +148,13 @@ int main()
                 bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
 
                 if (ctrl && event.key.key == SDLK_Z) {
-                    Canvas& canvas = layerStack.getLayer(activeLayerIndex).getCanvas();
-                    history.undo(canvas);
+                    Layer& layer = layerStack.getLayer(activeLayerIndex);
+                    layer.getHistory().undo(layer.getCanvas());
                 }
 
                 if (ctrl && event.key.key == SDLK_Y) {
-                    Canvas& canvas = layerStack.getLayer(activeLayerIndex).getCanvas();
-                    history.redo(canvas);
+                    Layer& layer = layerStack.getLayer(activeLayerIndex);
+                    layer.getHistory().redo(layer.getCanvas());
                 }
             }
         }

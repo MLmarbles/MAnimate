@@ -1,10 +1,15 @@
 #include "Layer.hpp"
+#include "History.hpp"
 
 Layer::Layer(int width, int height) 
     : canvas_(width, height) {}
 
 void Layer::setOpacity(float opacity) {
-    opacity_ = opacity;
+    if (opacity_ >= 1.0f || opacity_ <= 0) {
+        return;
+    }
+
+    opacity_ += opacity;
 }
 
 void Layer::toggleVisible() {
@@ -25,4 +30,8 @@ Canvas& Layer::getCanvas() {
 
 const Canvas& Layer::getCanvas() const {
     return canvas_;
+}
+
+History& Layer::getHistory() {
+    return history_;
 }
