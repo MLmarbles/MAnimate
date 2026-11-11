@@ -46,6 +46,10 @@ int main()
         return 1;
     }
 
+    if (!SDL_SetRenderVSync(renderer, 1)) {
+        std::cerr << "VSync failed: " << SDL_GetError() << '\n';
+    }
+
     LayerStack layerStack(800, 600);
 
     layerStack.addLayer();
