@@ -9,6 +9,7 @@
 #include "BrushTool.hpp"
 #include <EraserTool.hpp>
 #include "History.hpp"
+#include <LayerStack.hpp>
 
 int main()
 {
@@ -22,8 +23,8 @@ int main()
 
     SDL_Window* window = SDL_CreateWindow(
         "MAnimate",
-        256,
-        256,
+        800,
+        600,
         0
     );
 
@@ -45,17 +46,31 @@ int main()
         return 1;
     }
 
-    Canvas canvas(256, 256);
+    LayerStack layerStack(800, 600);
+
+    layerStack.addLayer();
+    layerStack.addLayer();
+
+    layerStack.getLayer(0).getCanvas().clear(
+        Color{255, 255, 255, 255}.pack()
+    );
+
+    layerStack.getLayer(1).getCanvas().clear(
+        Color{0, 0, 0, 0}.pack()
+    );
+
+    int activeLayerIndex = 1;
+    
     Color white{255, 255, 255, 255};
     Color red{255, 0, 0, 255};
-    canvas.clear(white.pack());
+    //canvas.clear(white.pack());
 
     SDL_Texture* texture = SDL_CreateTexture(
         renderer,
         SDL_PIXELFORMAT_RGBA8888,
         SDL_TEXTUREACCESS_STREAMING,
-        static_cast<int>(canvas.getWidth()),
-        static_cast<int>(canvas.getHeight())
+        static_cast<int>(800),
+        static_cast<int>(600)
     );
 
     if (texture == nullptr) {
@@ -78,7 +93,23 @@ int main()
                 running = false;
             }
             
+            if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) {
+                if (event.key.key == SDLK_1) {
+                    activeLayerIndex = 0;
+                }
+
+                if (event.key.key == SDLK_2) {
+                    activeLayerIndex = 1;
+                }
+
+                SDL_SetWindowTitle(
+                    window,
+                    ("MAnimate - Layer " + std::to_string(activeLayerIndex)).c_str()
+                );
+            }
+            
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+                Canvas& canvas = layerStack.getLayer(activeLayerIndex).getCanvas();
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     activeTool = &brush;
                 }
@@ -92,12 +123,14 @@ int main()
                 }
             }
             if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+                Canvas& canvas = layerStack.getLayer(activeLayerIndex).getCanvas();
                 if (activeTool != nullptr) {
                     activeTool->onMouseUp(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
                     activeTool = nullptr;
                 }
             }
             if (event.type == SDL_EVENT_MOUSE_MOTION) {
+                Canvas& canvas = layerStack.getLayer(activeLayerIndex).getCanvas();
                 if (activeTool != nullptr) {
                     activeTool->onMouseMove(canvas, static_cast<int>(event.motion.x), static_cast<int>(event.motion.y));
                 }
@@ -106,20 +139,24 @@ int main()
                 bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
 
                 if (ctrl && event.key.key == SDLK_Z) {
+                    Canvas& canvas = layerStack.getLayer(activeLayerIndex).getCanvas();
                     history.undo(canvas);
                 }
 
                 if (ctrl && event.key.key == SDLK_Y) {
+                    Canvas& canvas = layerStack.getLayer(activeLayerIndex).getCanvas();
                     history.redo(canvas);
                 }
             }
         }
 
+        Canvas composite = layerStack.composite();
+
         SDL_UpdateTexture(
             texture,
             nullptr,
-            &canvas.getPixels()[0],
-            static_cast<int>(canvas.getWidth() * sizeof(std::uint32_t))
+            composite.getPixels().data(),
+            static_cast<int>(800 * sizeof(std::uint32_t))
         );
 
         SDL_RenderClear(renderer);

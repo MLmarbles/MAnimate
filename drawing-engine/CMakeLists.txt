@@ -14,6 +14,8 @@ add_executable(drawing_engine
     src/BrushTool.cpp
     src/EraserTool.cpp
     src/History.cpp
+    src/Layer.cpp
+    src/LayerStack.cpp
 )
 
 target_include_directories(drawing_engine PRIVATE include)

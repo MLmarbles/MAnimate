@@ -1,4 +1,5 @@
 #include "Canvas.hpp"
+#pragma once
 
 class Layer{
     private:

@@ -1,5 +1,6 @@
 #include "Layer.hpp"
 #include <vector>
+#pragma once
 
 class LayerStack{
     private:
