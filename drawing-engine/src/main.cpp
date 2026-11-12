@@ -164,8 +164,8 @@ int main()
                     if (newIndex >= 0) {
                         layerStack.moveLayer(activeLayerIndex, newIndex);
                         activeLayerIndex = newIndex;
+                        needsRedraw = true;
                     }
-                    needsRedraw = true;
                 }
 
                 SDL_SetWindowTitle(
