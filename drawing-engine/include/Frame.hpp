@@ -1,4 +1,5 @@
 #include "LayerStack.hpp"
+#pragma once
 
 class Frame{
     private:

@@ -1,0 +1,37 @@
+#include "Timeline.hpp"
+#include "Frame.hpp"
+
+Timeline::Timeline(int width, int height)
+    : width_(width), height_(height)
+{
+    frames_.emplace_back(Frame(width_, height_));
+}
+
+void Timeline::addFrame() {
+    frames_.emplace_back(Frame(width_, height_));
+    currentFrameIndex_ = frames_.size()-1;
+}
+
+Frame& Timeline::getCurrentFrame() {
+    return frames_.at(currentFrameIndex_);
+}
+
+void Timeline::nextFrame() {
+    if (currentFrameIndex_ < frames_.size()-1) {
+        currentFrameIndex_ += 1;
+    }
+}
+
+void Timeline::previousFrame() {
+    if (currentFrameIndex_ > 0) {
+        currentFrameIndex_ -= 1;
+    }
+}
+
+int Timeline::getFrameCount() const {
+    return frames_.size();
+}
+
+int Timeline::getCurrentFrameIndex() const {
+    return currentFrameIndex_;
+}
