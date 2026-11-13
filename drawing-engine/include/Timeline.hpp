@@ -21,4 +21,5 @@ public:
     int getCurrentFrameIndex() const;
     void duplicateFrame();
     Frame* getPreviousFrame();
+    void goToFrame(int index);
 };

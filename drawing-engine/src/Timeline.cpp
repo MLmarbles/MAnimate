@@ -51,3 +51,9 @@ Frame* Timeline::getPreviousFrame() {
     }
     return &frames_.at(currentFrameIndex_-1);
 }
+
+void Timeline::goToFrame(int index) {
+    if (index < frames_.size() && index >= 0) {
+        currentFrameIndex_ = index;
+    } 
+}

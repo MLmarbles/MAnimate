@@ -87,6 +87,10 @@ int main()
     bool needsRedraw = true;
     bool onionMode = true;
 
+    bool isPlaying = false;
+    int fps = 12;
+    Uint64 lastFrameTime = SDL_GetTicks();
+
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
@@ -95,6 +99,12 @@ int main()
 
             if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) {
                 bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
+
+                if (!ctrl && event.key.key == SDLK_SPACE) {
+                    isPlaying = !isPlaying;
+                    lastFrameTime = SDL_GetTicks();
+                    needsRedraw = true;
+                }
 
                 if (!ctrl && event.key.key == SDLK_O) {
                     onionMode = !onionMode;
@@ -257,13 +267,34 @@ int main()
             }
         }
 
+        if (isPlaying) {
+            Uint64 now = SDL_GetTicks();
+            Uint64 frameDuration = 1000 / fps;
+
+            if (now - lastFrameTime >= frameDuration) {
+                if (timeline.getCurrentFrameIndex() == timeline.getFrameCount() - 1) {
+                    timeline.goToFrame(0);
+                } else {
+                    timeline.nextFrame();
+                }
+
+                activeLayerIndex = std::min(
+                    activeLayerIndex,
+                    getLayerStack().getLayerIndexes()
+                );
+
+                needsRedraw = true;
+                lastFrameTime = now;
+            }
+        }
+
         if (needsRedraw) {
             Canvas composite = getLayerStack().composite();
 
             Canvas displayCanvas(800, 600);
             displayCanvas.clear(Color{255, 255, 255, 255}.pack());
 
-            if (onionMode) {
+            if (onionMode && !isPlaying) {
                 Frame* prevptr = timeline.getPreviousFrame();
 
                 if (prevptr != nullptr) {
