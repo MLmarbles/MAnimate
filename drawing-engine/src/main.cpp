@@ -11,6 +11,7 @@
 #include "History.hpp"
 #include <LayerStack.hpp>
 #include <algorithm>
+#include "Timeline.hpp"
 
 int main()
 {
@@ -51,13 +52,11 @@ int main()
         std::cerr << "VSync failed: " << SDL_GetError() << '\n';
     }
 
-    LayerStack layerStack(800, 600);
+    Timeline timeline(800, 600);
 
-    layerStack.addLayer();
-
-    layerStack.getLayer(0).getCanvas().clear(
-        Color{0, 0, 0, 0}.pack()
-    );
+    auto getLayerStack = [&timeline]() -> LayerStack& {
+        return timeline.getCurrentFrame().getLayerStack();
+    };
 
     int activeLayerIndex = 0;
     
@@ -96,6 +95,24 @@ int main()
             if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) {
                 bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
 
+                if (!ctrl && event.key.key == SDLK_F) {
+                    timeline.addFrame();
+                    activeLayerIndex = 0;
+                    needsRedraw = true;
+                }
+
+                if (!ctrl && event.key.key == SDLK_RIGHT) {
+                    timeline.nextFrame();
+                    activeLayerIndex = 0;
+                    needsRedraw = true;
+                }
+
+                if (!ctrl && event.key.key == SDLK_LEFT) {
+                    timeline.previousFrame();
+                    activeLayerIndex = 0;
+                    needsRedraw = true;
+                }
+
                 if (!ctrl && event.key.key == SDLK_DOWN) {
                     if (activeLayerIndex > 0) {
                         activeLayerIndex--;
@@ -104,32 +121,32 @@ int main()
                 }
 
                 if (!ctrl && event.key.key == SDLK_UP) {
-                    if (activeLayerIndex < layerStack.getLayerIndexes()) {
+                    if (activeLayerIndex < getLayerStack().getLayerIndexes()) {
                         activeLayerIndex++;
                         needsRedraw = true;
                     }
                 }
                 
                 if (event.key.key == SDLK_LEFTBRACKET) {
-                    layerStack.getLayer(activeLayerIndex).setOpacity(-0.1);
+                    getLayerStack().getLayer(activeLayerIndex).setOpacity(-0.1);
                     needsRedraw = true;
                 }
 
                 if (event.key.key == SDLK_RIGHTBRACKET) {
-                    layerStack.getLayer(activeLayerIndex).setOpacity(0.1);
+                    getLayerStack().getLayer(activeLayerIndex).setOpacity(0.1);
                     needsRedraw = true;
                 }
 
                 if (event.key.key == SDLK_V) {
-                    layerStack.getLayer(activeLayerIndex).toggleVisible();
+                    getLayerStack().getLayer(activeLayerIndex).toggleVisible();
                     needsRedraw = true;
                 }
 
                 if (event.key.key == SDLK_N) {
-                    layerStack.addLayer();
-                    int layerIndexes = layerStack.getLayerIndexes();
+                    getLayerStack().addLayer();
+                    int layerIndexes = getLayerStack().getLayerIndexes();
 
-                    layerStack.getLayer(layerIndexes).getCanvas().clear(
+                    getLayerStack().getLayer(layerIndexes).getCanvas().clear(
                         Color{0, 0, 0, 0}.pack()
                     );
 
@@ -138,11 +155,11 @@ int main()
                 }
 
                 if (event.key.key == SDLK_DELETE) {
-                    if (layerStack.getLayerIndexes() > 0) {
-                        layerStack.removeLayer(activeLayerIndex);
+                    if (getLayerStack().getLayerIndexes() > 0) {
+                        getLayerStack().removeLayer(activeLayerIndex);
                         activeLayerIndex = std::min(
                             activeLayerIndex,
-                            layerStack.getLayerIndexes()
+                            getLayerStack().getLayerIndexes()
                         );
                         needsRedraw = true;
                     }
@@ -151,8 +168,8 @@ int main()
                 if (ctrl && event.key.key == SDLK_UP) {
                     int newIndex = activeLayerIndex + 1;
 
-                    if (newIndex <= layerStack.getLayerIndexes()) {
-                        layerStack.moveLayer(activeLayerIndex, newIndex);
+                    if (newIndex <= getLayerStack().getLayerIndexes()) {
+                        getLayerStack().moveLayer(activeLayerIndex, newIndex);
                         activeLayerIndex = newIndex;
                         needsRedraw = true;
                     }
@@ -162,7 +179,7 @@ int main()
                     int newIndex = activeLayerIndex - 1;
 
                     if (newIndex >= 0) {
-                        layerStack.moveLayer(activeLayerIndex, newIndex);
+                        getLayerStack().moveLayer(activeLayerIndex, newIndex);
                         activeLayerIndex = newIndex;
                         needsRedraw = true;
                     }
@@ -170,12 +187,19 @@ int main()
 
                 SDL_SetWindowTitle(
                     window,
-                    ("MAnimate - Layer " + std::to_string(activeLayerIndex)).c_str()
+                    (
+                        "MAnimate - Frame " +
+                        std::to_string(timeline.getCurrentFrameIndex() + 1) +
+                        "/" +
+                        std::to_string(timeline.getFrameCount()) +
+                        " - Layer " +
+                        std::to_string(activeLayerIndex)
+                    ).c_str()
                 );
             }
             
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                Canvas& canvas = layerStack.getLayer(activeLayerIndex).getCanvas();
+                Canvas& canvas = getLayerStack().getLayer(activeLayerIndex).getCanvas();
                 if (event.button.button == SDL_BUTTON_LEFT) {
                     activeTool = &brush;
                 }
@@ -184,13 +208,13 @@ int main()
                 }
 
                 if (activeTool != nullptr) {
-                    layerStack.getLayer(activeLayerIndex).getHistory().save(canvas);
+                    getLayerStack().getLayer(activeLayerIndex).getHistory().save(canvas);
                     activeTool->onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
                     needsRedraw = true;
                 }
             }
             if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
-                Canvas& canvas = layerStack.getLayer(activeLayerIndex).getCanvas();
+                Canvas& canvas = getLayerStack().getLayer(activeLayerIndex).getCanvas();
                 if (activeTool != nullptr) {
                     activeTool->onMouseUp(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
                     activeTool = nullptr;
@@ -198,7 +222,7 @@ int main()
                 }
             }
             if (event.type == SDL_EVENT_MOUSE_MOTION) {
-                Canvas& canvas = layerStack.getLayer(activeLayerIndex).getCanvas();
+                Canvas& canvas = getLayerStack().getLayer(activeLayerIndex).getCanvas();
                 if (activeTool != nullptr) {
                     activeTool->onMouseMove(canvas, static_cast<int>(event.motion.x), static_cast<int>(event.motion.y));
                     needsRedraw = true;
@@ -208,13 +232,13 @@ int main()
                 bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
 
                 if (ctrl && event.key.key == SDLK_Z) {
-                    Layer& layer = layerStack.getLayer(activeLayerIndex);
+                    Layer& layer = getLayerStack().getLayer(activeLayerIndex);
                     layer.getHistory().undo(layer.getCanvas());
                     needsRedraw = true;
                 }
 
                 if (ctrl && event.key.key == SDLK_Y) {
-                    Layer& layer = layerStack.getLayer(activeLayerIndex);
+                    Layer& layer = getLayerStack().getLayer(activeLayerIndex);
                     layer.getHistory().redo(layer.getCanvas());
                     needsRedraw = true;
                 }
@@ -222,7 +246,7 @@ int main()
         }
 
         if (needsRedraw) {
-            Canvas composite = layerStack.composite();
+            Canvas composite = getLayerStack().composite();
 
             Canvas displayCanvas(800, 600);
             displayCanvas.clear(Color{255, 255, 255, 255}.pack());

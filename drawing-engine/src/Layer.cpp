@@ -1,15 +1,12 @@
 #include "Layer.hpp"
 #include "History.hpp"
+#include <algorithm>
 
 Layer::Layer(int width, int height) 
     : canvas_(width, height) {}
 
 void Layer::setOpacity(float opacity) {
-    if (opacity_ > 1.0f || opacity_ < 0) {
-        return;
-    }
-
-    opacity_ += opacity;
+    opacity_ = std::clamp(opacity_ + opacity, 0.0f, 1.0f);
 }
 
 void Layer::toggleVisible() {
