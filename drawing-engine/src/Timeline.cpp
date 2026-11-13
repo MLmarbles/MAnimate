@@ -44,3 +44,10 @@ void Timeline::duplicateFrame() {
 
     currentFrameIndex_++;
 }
+
+Frame* Timeline::getPreviousFrame() {
+    if (currentFrameIndex_ == 0) {
+        return nullptr;
+    }
+    return &frames_.at(currentFrameIndex_-1);
+}

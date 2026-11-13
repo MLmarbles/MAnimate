@@ -85,6 +85,7 @@ int main()
     Tool* activeTool = nullptr;
 
     bool needsRedraw = true;
+    bool onionMode = true;
 
     while (running) {
         while (SDL_PollEvent(&event)) {
@@ -94,6 +95,11 @@ int main()
 
             if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) {
                 bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
+
+                if (!ctrl && event.key.key == SDLK_O) {
+                    onionMode = !onionMode;
+                    needsRedraw = true;
+                }
 
                 if (!ctrl && event.key.key == SDLK_D) {
                     timeline.duplicateFrame();
@@ -256,6 +262,26 @@ int main()
 
             Canvas displayCanvas(800, 600);
             displayCanvas.clear(Color{255, 255, 255, 255}.pack());
+
+            if (onionMode) {
+                Frame* prevptr = timeline.getPreviousFrame();
+
+                if (prevptr != nullptr) {
+                    Canvas prevCanvas = prevptr -> getLayerStack().composite();
+
+
+                    for (std::size_t y = 0; y < prevCanvas.getHeight(); ++y) {
+                        for (std::size_t x = 0; x < prevCanvas.getWidth(); ++x) {
+                            Color top = Color::unpack(prevCanvas.getPixel(x, y));
+                            Color bottom = Color::unpack(displayCanvas.getPixel(x, y));
+
+                            Color result = Color::blend(top, bottom, 0.25f);
+
+                            displayCanvas.setPixel(x, y, result.pack());
+                        }
+                    }
+                }
+            }
 
             for (std::size_t y = 0; y < composite.getHeight(); ++y) {
                 for (std::size_t x = 0; x < composite.getWidth(); ++x) {

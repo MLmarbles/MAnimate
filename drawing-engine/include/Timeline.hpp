@@ -20,4 +20,5 @@ public:
     int getFrameCount() const;
     int getCurrentFrameIndex() const;
     void duplicateFrame();
+    Frame* getPreviousFrame();
 };
