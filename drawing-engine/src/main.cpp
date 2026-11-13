@@ -95,6 +95,12 @@ int main()
             if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) {
                 bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
 
+                if (!ctrl && event.key.key == SDLK_D) {
+                    timeline.duplicateFrame();
+                    activeLayerIndex = 0;
+                    needsRedraw = true;
+                }
+
                 if (!ctrl && event.key.key == SDLK_F) {
                     timeline.addFrame();
                     activeLayerIndex = 0;

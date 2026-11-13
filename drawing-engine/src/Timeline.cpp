@@ -35,3 +35,12 @@ int Timeline::getFrameCount() const {
 int Timeline::getCurrentFrameIndex() const {
     return currentFrameIndex_;
 }
+
+void Timeline::duplicateFrame() {
+    frames_.insert(
+        frames_.begin() + currentFrameIndex_ + 1,
+        frames_.at(currentFrameIndex_)
+    );
+
+    currentFrameIndex_++;
+}
