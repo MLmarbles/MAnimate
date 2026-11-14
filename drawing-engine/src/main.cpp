@@ -100,6 +100,18 @@ int main()
             if (event.type == SDL_EVENT_KEY_DOWN && !event.key.repeat) {
                 bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
 
+                if (!ctrl && event.key.key == SDLK_EQUALS) {
+                    if (fps < 60) {
+                        fps+=1;
+                    }
+                }
+
+                if (!ctrl && event.key.key == SDLK_MINUS) {
+                    if (fps > 1) {
+                        fps-=1;
+                    }
+                }
+
                 if (!ctrl && event.key.key == SDLK_SPACE) {
                     isPlaying = !isPlaying;
                     lastFrameTime = SDL_GetTicks();
@@ -215,7 +227,9 @@ int main()
                         "/" +
                         std::to_string(timeline.getFrameCount()) +
                         " - Layer " +
-                        std::to_string(activeLayerIndex)
+                        std::to_string(activeLayerIndex) +
+                        " - fps " +
+                        std::to_string(fps)
                     ).c_str()
                 );
             }
