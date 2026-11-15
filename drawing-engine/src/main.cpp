@@ -188,7 +188,9 @@ int main()
                     needsRedraw = true;
                 }
 
-                if (event.key.key == SDLK_DELETE) {
+                bool shift = (event.key.mod & SDL_KMOD_SHIFT) != 0;
+
+                if (!shift && event.key.key == SDLK_DELETE) {
                     if (getLayerStack().getLayerIndexes() > 0) {
                         getLayerStack().removeLayer(activeLayerIndex);
                         activeLayerIndex = std::min(
@@ -197,6 +199,12 @@ int main()
                         );
                         needsRedraw = true;
                     }
+                }
+
+                if (shift && event.key.key == SDLK_DELETE && timeline.getFrameCount() > 1) {
+                    timeline.removeFrame(timeline.getCurrentFrameIndex());
+                    activeLayerIndex = 0;
+                    needsRedraw = true;
                 }
 
                 if (ctrl && event.key.key == SDLK_UP) {
@@ -218,20 +226,6 @@ int main()
                         needsRedraw = true;
                     }
                 }
-
-                SDL_SetWindowTitle(
-                    window,
-                    (
-                        "MAnimate - Frame " +
-                        std::to_string(timeline.getCurrentFrameIndex() + 1) +
-                        "/" +
-                        std::to_string(timeline.getFrameCount()) +
-                        " - Layer " +
-                        std::to_string(activeLayerIndex) +
-                        " - fps " +
-                        std::to_string(fps)
-                    ).c_str()
-                );
             }
             
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
@@ -301,6 +295,20 @@ int main()
                 lastFrameTime = now;
             }
         }
+
+        SDL_SetWindowTitle(
+            window,
+            (
+                "MAnimate - Frame " +
+                std::to_string(timeline.getCurrentFrameIndex() + 1) +
+                "/" +
+                std::to_string(timeline.getFrameCount()) +
+                " - Layer " +
+                std::to_string(activeLayerIndex) +
+                " - fps " +
+                std::to_string(fps)
+            ).c_str()
+        );
 
         if (needsRedraw) {
             Canvas composite = getLayerStack().composite();

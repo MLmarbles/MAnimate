@@ -14,6 +14,7 @@ public:
     Timeline(int width, int height);
 
     void addFrame();
+    void removeFrame(int index);
     Frame& getCurrentFrame();
     void nextFrame();
     void previousFrame();

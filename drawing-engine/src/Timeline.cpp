@@ -1,5 +1,7 @@
 #include "Timeline.hpp"
 #include "Frame.hpp"
+#include <stdexcept>
+
 
 Timeline::Timeline(int width, int height)
     : width_(width), height_(height)
@@ -10,6 +12,21 @@ Timeline::Timeline(int width, int height)
 void Timeline::addFrame() {
     frames_.emplace_back(Frame(width_, height_));
     currentFrameIndex_ = frames_.size()-1;
+}
+
+void Timeline::removeFrame(int index) {
+    if (index < 0 || index >= frames_.size()) {
+        throw std::out_of_range("Invalid frame index");
+    }
+
+    frames_.erase(frames_.begin() + index);
+    
+    if (index < currentFrameIndex_) {
+        currentFrameIndex_--;
+    }
+    if (currentFrameIndex_ >= frames_.size()) {
+        currentFrameIndex_ = frames_.size() - 1;
+    }
 }
 
 Frame& Timeline::getCurrentFrame() {
