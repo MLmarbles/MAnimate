@@ -23,4 +23,5 @@ public:
     void duplicateFrame();
     Frame* getPreviousFrame();
     void goToFrame(int index);
+    void moveFrame(int fromIndex, int toIndex);
 };

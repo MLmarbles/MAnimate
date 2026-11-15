@@ -20,7 +20,7 @@ void Timeline::removeFrame(int index) {
     }
 
     frames_.erase(frames_.begin() + index);
-    
+
     if (index < currentFrameIndex_) {
         currentFrameIndex_--;
     }
@@ -73,4 +73,45 @@ void Timeline::goToFrame(int index) {
     if (index < frames_.size() && index >= 0) {
         currentFrameIndex_ = index;
     } 
+}
+
+void Timeline::moveFrame(int fromIndex, int toIndex) {
+    int count = static_cast<int>(frames_.size());
+
+    if (fromIndex < 0 || fromIndex >= count ||
+        toIndex < 0 || toIndex >= count) {
+        throw std::out_of_range("Invalid frame index");
+    }
+
+    if (fromIndex == toIndex) {
+        return;
+    }
+
+    if (fromIndex < toIndex) {
+        std::rotate(
+            frames_.begin() + fromIndex,
+            frames_.begin() + fromIndex + 1,
+            frames_.begin() + toIndex + 1
+        );
+    } else {
+        std::rotate(
+            frames_.begin() + toIndex,
+            frames_.begin() + fromIndex,
+            frames_.begin() + fromIndex + 1
+        );
+    }
+
+    if (currentFrameIndex_ == fromIndex) {
+    currentFrameIndex_ = toIndex;
+    }
+    else if (fromIndex < toIndex &&
+            currentFrameIndex_ > fromIndex &&
+            currentFrameIndex_ <= toIndex) {
+        currentFrameIndex_--;
+    }
+    else if (fromIndex > toIndex &&
+            currentFrameIndex_ >= toIndex &&
+            currentFrameIndex_ < fromIndex) {
+        currentFrameIndex_++;
+    }
 }

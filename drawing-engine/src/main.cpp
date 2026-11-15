@@ -135,18 +135,6 @@ int main()
                     needsRedraw = true;
                 }
 
-                if (!ctrl && event.key.key == SDLK_RIGHT) {
-                    timeline.nextFrame();
-                    activeLayerIndex = 0;
-                    needsRedraw = true;
-                }
-
-                if (!ctrl && event.key.key == SDLK_LEFT) {
-                    timeline.previousFrame();
-                    activeLayerIndex = 0;
-                    needsRedraw = true;
-                }
-
                 if (!ctrl && event.key.key == SDLK_DOWN) {
                     if (activeLayerIndex > 0) {
                         activeLayerIndex--;
@@ -189,6 +177,36 @@ int main()
                 }
 
                 bool shift = (event.key.mod & SDL_KMOD_SHIFT) != 0;
+
+                if (!ctrl && !shift && event.key.key == SDLK_RIGHT) {
+                    timeline.nextFrame();
+                    activeLayerIndex = 0;
+                    needsRedraw = true;
+                }
+
+                if (!ctrl && !shift && event.key.key == SDLK_LEFT) {
+                    timeline.previousFrame();
+                    activeLayerIndex = 0;
+                    needsRedraw = true;
+                }
+                
+                if (shift && event.key.key == SDLK_RIGHT) {
+                    int index = timeline.getCurrentFrameIndex();
+
+                    if (index < timeline.getFrameCount() - 1) {
+                        timeline.moveFrame(index, index + 1);
+                        needsRedraw = true;
+                    }
+                }
+
+                if (shift && event.key.key == SDLK_LEFT) {
+                    int index = timeline.getCurrentFrameIndex();
+
+                    if (index > 0) {
+                        timeline.moveFrame(index, index - 1);
+                        needsRedraw = true;
+                    }
+                }
 
                 if (!shift && event.key.key == SDLK_DELETE) {
                     if (getLayerStack().getLayerIndexes() > 0) {
