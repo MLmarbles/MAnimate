@@ -24,4 +24,6 @@ public:
     Frame* getPreviousFrame();
     void goToFrame(int index);
     void moveFrame(int fromIndex, int toIndex);
+    int getWidth() const;
+    int getHeight() const;
 };

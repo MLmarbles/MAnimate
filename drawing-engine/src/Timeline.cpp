@@ -115,3 +115,11 @@ void Timeline::moveFrame(int fromIndex, int toIndex) {
         currentFrameIndex_++;
     }
 }
+
+int Timeline::getWidth() const {
+    return width_;
+}
+
+int Timeline::getHeight() const {
+    return height_;
+}

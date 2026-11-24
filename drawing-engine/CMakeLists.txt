@@ -8,6 +8,7 @@ find_package(SDL3 CONFIG REQUIRED)
 
 add_executable(drawing_engine
     src/main.cpp
+    src/Editor.cpp
     src/Canvas.cpp
     src/ImageWriter.cpp
     src/Drawing.cpp
