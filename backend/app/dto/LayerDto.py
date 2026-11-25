@@ -18,7 +18,7 @@ class LayerUpdate(BaseModel):
     visible: bool | None = None
     opacity: float | None = Field(default=None, ge=0, le=1, allow_inf_nan=False)
 
-    @field_validator("name", "position", "visible", "opacity")
+    @field_validator("name", "visible", "opacity")
     @classmethod
     def reject_null(cls, value):
         if value is None:

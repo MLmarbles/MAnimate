@@ -1,16 +1,19 @@
 from sqlalchemy.orm import Session
 from models.User import User
 from repository import ProjectRepository
-from dto.ProjectDTO import ProjectUpdate
+from dto.ProjectDTO import ProjectUpdate, ProjectCreate
 
 class ProjectNotFound(Exception):
     pass
 
-def create(db: Session, name: str, user: User):
+def create(db: Session, name: str, width: int, height: int, fps: int, user: User):
     try: 
         project = ProjectRepository.create_project(
             db=db,
             name=name,
+            width=width,
+            height=height,
+            fps=fps,
             id=user.id
         )
         db.commit()
@@ -21,10 +24,10 @@ def create(db: Session, name: str, user: User):
     db.refresh(project)
     return project
 
-def update(db: Session, project_id: int, name: str, user: User):
+def update(db: Session, project_id: int, name: str, fps: int, user: User):
     try:
         project = get(db, project_id, user)
-        ProjectRepository.update_project(db, project, name)
+        ProjectRepository.update_project(db, project, name, fps)
         db.commit()
     except Exception:
         db.rollback()

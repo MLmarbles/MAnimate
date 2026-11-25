@@ -21,11 +21,11 @@ def create_project(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    return ProjectService.create(db, project.name, current_user)
+    return ProjectService.create(db, project.name, project.width, project.height, project.fps, current_user)
 
 @router.get(
     "/{project_id}",
-    response_model=ProjectDTO.ProjectResponse,
+    response_model=ProjectDTO.ProjectDetailResponse
 )
 def get_project(
     project_id: int,
@@ -51,7 +51,7 @@ def update_project(
     db: Session = Depends(get_db),
 ):
     try:
-        return ProjectService.update(db, project_id, project.name, current_user)
+        return ProjectService.update(db, project_id, project.name, project.fps, current_user)
     except ProjectService.ProjectNotFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

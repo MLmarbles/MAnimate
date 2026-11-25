@@ -1,8 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field
-
-class FrameCreate(BaseModel):
-    position: int = Field(ge=0)
-
+from dto.LayerDTO import LayerResponse
 
 class FrameReorder(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -16,3 +13,6 @@ class FrameResponse(BaseModel):
     id: int
     project_id: int
     position: int
+
+class FrameDetailResponse(FrameResponse):
+    layers: list[LayerResponse]

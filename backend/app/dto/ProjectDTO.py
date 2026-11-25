@@ -1,5 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from dto.FrameDTO import FrameDetailResponse
 
 class ProjectCreate(BaseModel):
     name: str
@@ -30,3 +31,6 @@ class ProjectResponse(BaseModel):
     width: int
     height: int
     fps: int
+
+class ProjectDetailResponse(ProjectResponse):
+    frames: list[FrameDetailResponse]
