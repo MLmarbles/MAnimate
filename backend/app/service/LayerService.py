@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
-from dto.LayerDto import LayerUpdate
+from dto.LayerDTO import LayerUpdate
 from models.User import User
 from repository import LayerRepository
-from service import ProjectService, StorageService
+from service import FrameService, StorageService
 
 
 class LayerNotFound(Exception):
@@ -14,11 +14,11 @@ class InvalidLayerOrder(Exception):
 class ContentNotFound(Exception):
     pass
 
-def create(db: Session, project_id: int, name: str, user: User):
+def create(db: Session, project_id: int, frame_id: int, name: str, user: User):
     try:
-        project = ProjectService.get(db, project_id, user)
+        frame = FrameService.get(db, project_id, frame_id, user)
         layer = LayerRepository.create_layer(
-            db=db, project_id=project.id, name=name
+            db=db, frame_id=frame.id, name=name
         )
         db.commit()
     except Exception:
@@ -29,23 +29,23 @@ def create(db: Session, project_id: int, name: str, user: User):
     return layer
 
 
-def get(db: Session, project_id: int, layer_id: int, user: User):
-    ProjectService.get(db, project_id, user)
-    layer = LayerRepository.get_layer(db, project_id, layer_id)
+def get(db: Session, project_id: int, frame_id: int, layer_id: int, user: User):
+    FrameService.get(db, project_id, frame_id, user)
+    layer = LayerRepository.get_layer(db, frame_id, layer_id)
     if layer is None:
         raise LayerNotFound()
     return layer
 
 
-def list_layers(db: Session, project_id: int, user: User):
-    ProjectService.get(db, project_id, user)
-    return LayerRepository.list_layers(db, project_id)
+def list_layers(db: Session, project_id: int, frame_id: int, user: User):
+    FrameService.get(db, project_id, frame_id, user)
+    return LayerRepository.list_layers(db, frame_id)
 
 
-def reorder(db: Session, project_id: int, layer_ids: list[int], user: User):
+def reorder(db: Session, project_id: int, frame_id: int, layer_ids: list[int], user: User):
     try:
-        ProjectService.get(db, project_id, user)
-        layers = LayerRepository.list_layers(db, project_id)
+        FrameService.get(db, project_id, frame_id, user)
+        layers = LayerRepository.list_layers(db, frame_id)
         layers_by_id = {layer.id: layer for layer in layers}
         if len(layer_ids) != len(layers) or set(layer_ids) != set(layers_by_id):
             raise InvalidLayerOrder()
@@ -60,9 +60,9 @@ def reorder(db: Session, project_id: int, layer_ids: list[int], user: User):
     return ordered_layers
 
 
-def update(db: Session, project_id: int, layer_id: int, changes: LayerUpdate, user: User):
+def update(db: Session, project_id: int, frame_id: int, layer_id: int, changes: LayerUpdate, user: User):
     try:
-        layer = get(db, project_id, layer_id, user)
+        layer = get(db, project_id, frame_id, layer_id, user)
         LayerRepository.update_layer(db, layer, changes.model_dump(exclude_unset=True))
         db.commit()
     except Exception:
@@ -73,12 +73,13 @@ def update(db: Session, project_id: int, layer_id: int, changes: LayerUpdate, us
     return layer
 
 
-def delete(db: Session, project_id: int, layer_id: int, user: User):
+def delete(db: Session, project_id: int, frame_id: int, layer_id: int, user: User):
     storage_key = None
     try:
-        layer = get(db, project_id, layer_id, user)
+        layer = get(db, project_id, frame_id, layer_id, user)
         storage_key = layer.storage_key
         LayerRepository.delete_layer(db, layer)
+        LayerRepository.reorder_layers(db, LayerRepository.list_layers(db, frame_id))
         db.commit()
     except Exception:
         db.rollback()
@@ -94,11 +95,12 @@ def delete(db: Session, project_id: int, layer_id: int, user: User):
 def save_content(
     db: Session,
     project_id: int,
+    frame_id: int,
     layer_id: int,
     data: bytes,
     user: User,
 ):
-    layer = get(db, project_id, layer_id, user)
+    layer = get(db, project_id, frame_id, layer_id, user)
     old_storage_key = layer.storage_key
     new_storage_key = None
 
@@ -122,10 +124,11 @@ def save_content(
 def get_content(
     db: Session,
     project_id: int,
+    frame_id: int,
     layer_id: int,
     user: User,
 ):
-    layer = get(db, project_id, layer_id, user)
+    layer = get(db, project_id, frame_id, layer_id, user)
 
     if layer.storage_key is None:
         raise ContentNotFound()

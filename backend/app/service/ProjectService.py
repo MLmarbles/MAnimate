@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from models.User import User
-from repository import ProjectRepository
-from dto.ProjectDTO import ProjectUpdate, ProjectCreate
+from repository import ProjectRepository, FrameRepository, LayerRepository
+from service import StorageService
 
 class ProjectNotFound(Exception):
     pass
@@ -16,6 +16,8 @@ def create(db: Session, name: str, width: int, height: int, fps: int, user: User
             fps=fps,
             id=user.id
         )
+        frame = FrameRepository.create_frame(db, project.id, position=0)
+        LayerRepository.create_layer(db, frame.id, name="Layer 1")
         db.commit()
     except Exception:
         db.rollback()
@@ -39,11 +41,24 @@ def update(db: Session, project_id: int, name: str, fps: int, user: User):
 def delete(db: Session, project_id: int, user: User):
     try:
         project = get(db, project_id, user)
+        storage_keys = [
+            layer.storage_key
+            for frame in project.frames
+            for layer in frame.layers
+            if layer.storage_key is not None
+        ]
         ProjectRepository.delete_project(db, project)
         db.commit()
     except Exception:
         db.rollback()
         raise
+
+    for storage_key in storage_keys:
+        try:
+            StorageService.delete_layer(storage_key)
+        except Exception:
+            # Match layer deletion: a cleanup failure cannot undo the committed delete.
+            pass
 
 
 def get(db: Session, project_id: int, user: User):

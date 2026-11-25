@@ -1,7 +1,6 @@
-from repository import FrameRepository
+from repository import FrameRepository, LayerRepository
 from sqlalchemy.orm import Session
 from models.User import User
-from models.Layer import Layer
 from service import ProjectService, StorageService
 
 
@@ -32,11 +31,11 @@ def create(db: Session, project_id: int, user: User):
             position=position
         )
 
-        db.add(Layer(
+        LayerRepository.create_layer(
+            db=db,
             frame_id=frame.id,
             name="Layer 1",
-            position=0
-        ))
+        )
 
         db.commit()
 

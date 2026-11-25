@@ -26,4 +26,9 @@ class Frame(base):
 
 
     project = relationship("Project", back_populates="frames")
-    layers = relationship("Layer", back_populates="frame", cascade="all, delete-orphan")
+    layers = relationship(
+        "Layer",
+        back_populates="frame",
+        cascade="all, delete-orphan",
+        order_by="Layer.position"
+    )
