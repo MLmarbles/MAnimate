@@ -1,17 +1,8 @@
-#include "Canvas.hpp"
-#include "Color.hpp"
-#include "Drawing.hpp"
-#include "ImageWriter.hpp"
+#include "Editor.hpp"
 
 #include <iostream>
+#include <string>
 #include <SDL3/SDL.h>
-
-#include "BrushTool.hpp"
-#include <EraserTool.hpp>
-#include "History.hpp"
-#include <LayerStack.hpp>
-#include <algorithm>
-#include "Timeline.hpp"
 
 int main()
 {
@@ -52,24 +43,14 @@ int main()
         std::cerr << "VSync failed: " << SDL_GetError() << '\n';
     }
 
-    Timeline timeline(800, 600);
-
-    auto getLayerStack = [&timeline]() -> LayerStack& {
-        return timeline.getCurrentFrame().getLayerStack();
-    };
-
-    int activeLayerIndex = 0;
-    
-    Color white{255, 255, 255, 255};
-    Color red{255, 0, 0, 255};
-    //canvas.clear(white.pack());
+    Editor editor(800, 600);
 
     SDL_Texture* texture = SDL_CreateTexture(
         renderer,
         SDL_PIXELFORMAT_RGBA8888,
         SDL_TEXTUREACCESS_STREAMING,
-        static_cast<int>(800),
-        static_cast<int>(600)
+        editor.getWidth(),
+        editor.getHeight()
     );
 
     if (texture == nullptr) {
@@ -80,15 +61,8 @@ int main()
         return 1;
     }
 
-    BrushTool brush;
-    EraserTool eraser;
-    Tool* activeTool = nullptr;
-
     bool needsRedraw = true;
-    bool onionMode = true;
 
-    bool isPlaying = false;
-    int fps = 12;
     Uint64 lastFrameTime = SDL_GetTicks();
 
     while (running) {
@@ -101,213 +75,145 @@ int main()
                 bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
 
                 if (!ctrl && event.key.key == SDLK_EQUALS) {
-                    if (fps < 60) {
-                        fps+=1;
-                    }
+                    editor.setFPS(editor.getFPS() + 1);
                 }
 
                 if (!ctrl && event.key.key == SDLK_MINUS) {
-                    if (fps > 1) {
-                        fps-=1;
-                    }
+                    editor.setFPS(editor.getFPS() - 1);
                 }
 
                 if (!ctrl && event.key.key == SDLK_SPACE) {
-                    isPlaying = !isPlaying;
+                    editor.togglePlayback();
                     lastFrameTime = SDL_GetTicks();
                     needsRedraw = true;
                 }
 
                 if (!ctrl && event.key.key == SDLK_O) {
-                    onionMode = !onionMode;
+                    editor.toggleOnionMode();
                     needsRedraw = true;
                 }
 
                 if (!ctrl && event.key.key == SDLK_D) {
-                    timeline.duplicateFrame();
-                    activeLayerIndex = 0;
+                    editor.duplicateFrame();
                     needsRedraw = true;
                 }
 
                 if (!ctrl && event.key.key == SDLK_F) {
-                    timeline.addFrame();
-                    activeLayerIndex = 0;
+                    editor.addFrame();
                     needsRedraw = true;
                 }
 
                 if (!ctrl && event.key.key == SDLK_DOWN) {
-                    if (activeLayerIndex > 0) {
-                        activeLayerIndex--;
-                        needsRedraw = true;
-                    }
+                    editor.previousLayer();
+                    needsRedraw = true;
                 }
 
                 if (!ctrl && event.key.key == SDLK_UP) {
-                    if (activeLayerIndex < getLayerStack().getLayerIndexes()) {
-                        activeLayerIndex++;
-                        needsRedraw = true;
-                    }
+                    editor.nextLayer();
+                    needsRedraw = true;
                 }
                 
                 if (event.key.key == SDLK_LEFTBRACKET) {
-                    getLayerStack().getLayer(activeLayerIndex).setOpacity(-0.1);
+                    editor.changeLayerOpacity(-0.1f);
                     needsRedraw = true;
                 }
 
                 if (event.key.key == SDLK_RIGHTBRACKET) {
-                    getLayerStack().getLayer(activeLayerIndex).setOpacity(0.1);
+                    editor.changeLayerOpacity(0.1f);
                     needsRedraw = true;
                 }
 
                 if (event.key.key == SDLK_V) {
-                    getLayerStack().getLayer(activeLayerIndex).toggleVisible();
+                    editor.toggleLayerVisibility();
                     needsRedraw = true;
                 }
 
                 if (event.key.key == SDLK_N) {
-                    getLayerStack().addLayer();
-                    int layerIndexes = getLayerStack().getLayerIndexes();
-
-                    getLayerStack().getLayer(layerIndexes).getCanvas().clear(
-                        Color{0, 0, 0, 0}.pack()
-                    );
-
-                    activeLayerIndex = layerIndexes;
+                    editor.addLayer();
                     needsRedraw = true;
                 }
 
                 bool shift = (event.key.mod & SDL_KMOD_SHIFT) != 0;
 
                 if (!ctrl && !shift && event.key.key == SDLK_RIGHT) {
-                    timeline.nextFrame();
-                    activeLayerIndex = 0;
+                    editor.nextFrame();
                     needsRedraw = true;
                 }
 
                 if (!ctrl && !shift && event.key.key == SDLK_LEFT) {
-                    timeline.previousFrame();
-                    activeLayerIndex = 0;
+                    editor.previousFrame();
                     needsRedraw = true;
                 }
                 
                 if (shift && event.key.key == SDLK_RIGHT) {
-                    int index = timeline.getCurrentFrameIndex();
-
-                    if (index < timeline.getFrameCount() - 1) {
-                        timeline.moveFrame(index, index + 1);
-                        needsRedraw = true;
-                    }
+                    editor.moveFrameRight();
+                    needsRedraw = true;
                 }
 
                 if (shift && event.key.key == SDLK_LEFT) {
-                    int index = timeline.getCurrentFrameIndex();
-
-                    if (index > 0) {
-                        timeline.moveFrame(index, index - 1);
-                        needsRedraw = true;
-                    }
+                    editor.moveFrameLeft();
+                    needsRedraw = true;
                 }
 
                 if (!shift && event.key.key == SDLK_DELETE) {
-                    if (getLayerStack().getLayerIndexes() > 0) {
-                        getLayerStack().removeLayer(activeLayerIndex);
-                        activeLayerIndex = std::min(
-                            activeLayerIndex,
-                            getLayerStack().getLayerIndexes()
-                        );
-                        needsRedraw = true;
-                    }
+                    editor.removeCurrentLayer();
+                    needsRedraw = true;
                 }
 
-                if (shift && event.key.key == SDLK_DELETE && timeline.getFrameCount() > 1) {
-                    timeline.removeFrame(timeline.getCurrentFrameIndex());
-                    activeLayerIndex = 0;
+                if (shift && event.key.key == SDLK_DELETE && editor.getFrameCount() > 1) {
+                    editor.removeCurrentFrame();
                     needsRedraw = true;
                 }
 
                 if (ctrl && event.key.key == SDLK_UP) {
-                    int newIndex = activeLayerIndex + 1;
-
-                    if (newIndex <= getLayerStack().getLayerIndexes()) {
-                        getLayerStack().moveLayer(activeLayerIndex, newIndex);
-                        activeLayerIndex = newIndex;
-                        needsRedraw = true;
-                    }
+                    editor.moveLayerUp();
+                    needsRedraw = true;
                 }
 
                 if (ctrl && event.key.key == SDLK_DOWN) {
-                    int newIndex = activeLayerIndex - 1;
-
-                    if (newIndex >= 0) {
-                        getLayerStack().moveLayer(activeLayerIndex, newIndex);
-                        activeLayerIndex = newIndex;
-                        needsRedraw = true;
-                    }
+                    editor.moveLayerDown();
+                    needsRedraw = true;
                 }
             }
             
-            if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                Canvas& canvas = getLayerStack().getLayer(activeLayerIndex).getCanvas();
-                if (event.button.button == SDL_BUTTON_LEFT) {
-                    activeTool = &brush;
-                }
-                if (event.button.button == SDL_BUTTON_RIGHT) {
-                    activeTool = &eraser;
-                }
-
-                if (activeTool != nullptr) {
-                    getLayerStack().getLayer(activeLayerIndex).getHistory().save(canvas);
-                    activeTool->onMouseDown(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
-                    needsRedraw = true;
-                }
+            if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN &&
+                (event.button.button == SDL_BUTTON_LEFT || event.button.button == SDL_BUTTON_RIGHT)) {
+                editor.onMouseDown(
+                    static_cast<int>(event.button.x),
+                    static_cast<int>(event.button.y),
+                    event.button.button == SDL_BUTTON_RIGHT
+                );
+                needsRedraw = true;
             }
             if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
-                Canvas& canvas = getLayerStack().getLayer(activeLayerIndex).getCanvas();
-                if (activeTool != nullptr) {
-                    activeTool->onMouseUp(canvas, static_cast<int>(event.button.x), static_cast<int>(event.button.y));
-                    activeTool = nullptr;
-                    needsRedraw = true;
-                }
+                editor.onMouseUp(static_cast<int>(event.button.x), static_cast<int>(event.button.y));
+                needsRedraw = true;
             }
             if (event.type == SDL_EVENT_MOUSE_MOTION) {
-                Canvas& canvas = getLayerStack().getLayer(activeLayerIndex).getCanvas();
-                if (activeTool != nullptr) {
-                    activeTool->onMouseMove(canvas, static_cast<int>(event.motion.x), static_cast<int>(event.motion.y));
-                    needsRedraw = true;
-                }
+                editor.onMouseMove(static_cast<int>(event.motion.x), static_cast<int>(event.motion.y));
+                needsRedraw = true;
             }
             if (event.type == SDL_EVENT_KEY_DOWN) {
                 bool ctrl = (event.key.mod & SDL_KMOD_CTRL) != 0;
 
                 if (ctrl && event.key.key == SDLK_Z) {
-                    Layer& layer = getLayerStack().getLayer(activeLayerIndex);
-                    layer.getHistory().undo(layer.getCanvas());
+                    editor.undo();
                     needsRedraw = true;
                 }
 
                 if (ctrl && event.key.key == SDLK_Y) {
-                    Layer& layer = getLayerStack().getLayer(activeLayerIndex);
-                    layer.getHistory().redo(layer.getCanvas());
+                    editor.redo();
                     needsRedraw = true;
                 }
             }
         }
 
-        if (isPlaying) {
+        if (editor.isPlaying()) {
             Uint64 now = SDL_GetTicks();
-            Uint64 frameDuration = 1000 / fps;
+            Uint64 frameDuration = 1000 / editor.getFPS();
 
             if (now - lastFrameTime >= frameDuration) {
-                if (timeline.getCurrentFrameIndex() == timeline.getFrameCount() - 1) {
-                    timeline.goToFrame(0);
-                } else {
-                    timeline.nextFrame();
-                }
-
-                activeLayerIndex = std::min(
-                    activeLayerIndex,
-                    getLayerStack().getLayerIndexes()
-                );
+                editor.advancePlaybackFrame();
 
                 needsRedraw = true;
                 lastFrameTime = now;
@@ -318,52 +224,18 @@ int main()
             window,
             (
                 "MAnimate - Frame " +
-                std::to_string(timeline.getCurrentFrameIndex() + 1) +
+                std::to_string(editor.getCurrentFrameIndex() + 1) +
                 "/" +
-                std::to_string(timeline.getFrameCount()) +
+                std::to_string(editor.getFrameCount()) +
                 " - Layer " +
-                std::to_string(activeLayerIndex) +
+                std::to_string(editor.getActiveLayerIndex()) +
                 " - fps " +
-                std::to_string(fps)
+                std::to_string(editor.getFPS())
             ).c_str()
         );
 
         if (needsRedraw) {
-            Canvas composite = getLayerStack().composite();
-
-            Canvas displayCanvas(800, 600);
-            displayCanvas.clear(Color{255, 255, 255, 255}.pack());
-
-            if (onionMode && !isPlaying) {
-                Frame* prevptr = timeline.getPreviousFrame();
-
-                if (prevptr != nullptr) {
-                    Canvas prevCanvas = prevptr -> getLayerStack().composite();
-
-
-                    for (std::size_t y = 0; y < prevCanvas.getHeight(); ++y) {
-                        for (std::size_t x = 0; x < prevCanvas.getWidth(); ++x) {
-                            Color top = Color::unpack(prevCanvas.getPixel(x, y));
-                            Color bottom = Color::unpack(displayCanvas.getPixel(x, y));
-
-                            Color result = Color::blend(top, bottom, 0.25f);
-
-                            displayCanvas.setPixel(x, y, result.pack());
-                        }
-                    }
-                }
-            }
-
-            for (std::size_t y = 0; y < composite.getHeight(); ++y) {
-                for (std::size_t x = 0; x < composite.getWidth(); ++x) {
-                    Color top = Color::unpack(composite.getPixel(x, y));
-                    Color bottom = Color::unpack(displayCanvas.getPixel(x, y));
-
-                    Color result = Color::blend(top, bottom, 1.0f);
-
-                    displayCanvas.setPixel(x, y, result.pack());
-                }
-            }
+            Canvas displayCanvas = editor.render();
 
             SDL_UpdateTexture(
                 texture,
