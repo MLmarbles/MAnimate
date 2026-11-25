@@ -9,7 +9,7 @@ private:
     int currentFrameIndex_ = 0;
     int width_;
     int height_;
-
+    
 public:
     Timeline(int width, int height);
 

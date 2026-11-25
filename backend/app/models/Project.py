@@ -1,9 +1,16 @@
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, func
 from database import base
 from sqlalchemy.orm import relationship
+from sqlalchemy import CheckConstraint, UniqueConstraint
 
 class Project(base):
     __tablename__ = "Project"
+
+    __table_args__ = (
+        CheckConstraint("width > 0", name="ck_project_width"),
+        CheckConstraint("height > 0", name="ck_project_height"),
+        CheckConstraint("fps BETWEEN 1 AND 60", name="ck_project_fps"),
+    )
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -25,6 +32,15 @@ class Project(base):
         nullable=False
         )
 
-    owner = relationship("User", back_populates="projects")
+    width = Column(Integer, nullable=False, default=800)
+    height = Column(Integer, nullable=False, default=600)
+    fps = Column(Integer, nullable=False, default=12)
 
-    layers = relationship("Layer", back_populates="owner", cascade="all, delete-orphan")
+
+    owner = relationship("User", back_populates="projects")
+    frames = relationship(
+        "Frame",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        order_by="Frame.position"
+    )

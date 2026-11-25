@@ -11,7 +11,7 @@ class Layer{
 
     public:
         Layer(int width, int height);
-
+        
         void setOpacity(float opacity);
         void toggleVisible();
         float getOpacity() const;
