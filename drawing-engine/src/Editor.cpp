@@ -279,3 +279,15 @@ bool Editor::isLayerDirty(int frameIndex, int layerIndex) const {
 void Editor::markLayerClean(int frameIndex, int layerIndex) {
     timeline_.getFrame(frameIndex).getLayerStack().getLayer(layerIndex).markClean();
 }
+
+float Editor::getLayerOpacity(int frameIndex, int layerIndex) const {
+    return timeline_.getFrame(frameIndex).getLayerStack().getLayer(layerIndex).getOpacity();
+}
+
+bool Editor::isLayerVisible(int frameIndex, int layerIndex) const {
+    return timeline_.getFrame(frameIndex).getLayerStack().getLayer(layerIndex).isVisible();
+}
+
+const Canvas& Editor::getLayerCanvas(int frameIndex, int layerIndex) const {
+    return timeline_.getFrame(frameIndex).getLayerStack().getLayer(layerIndex).getCanvas();
+}

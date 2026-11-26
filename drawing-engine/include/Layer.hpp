@@ -10,6 +10,7 @@ class Layer{
         float opacity_ = 1.0f;
         bool visible_ = true;
         History history_;
+        std::string name_ = "Layer";
 
         bool dirty_ = true;
 
@@ -26,6 +27,9 @@ class Layer{
         Canvas& getCanvas();
         const Canvas& getCanvas() const;
         History& getHistory();
+
+        const std::string& getName() const;
+        void setName(const std::string& name);
 
         bool isDirty() const;
         void markDirty();

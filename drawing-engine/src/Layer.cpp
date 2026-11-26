@@ -49,6 +49,17 @@ History& Layer::getHistory() {
     return history_;
 }
 
+const std::string& Layer::getName() const {
+    return name_;
+}
+
+void Layer::setName(const std::string& name) {
+    if (name_ != name) {
+        name_ = name;
+        markDirty();
+    }
+}
+
 bool Layer::isDirty() const {
     return dirty_;
 }

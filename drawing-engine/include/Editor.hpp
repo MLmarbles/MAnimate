@@ -73,5 +73,9 @@ class Editor {
 
         bool isLayerDirty(int frameIndex, int layerIndex) const;
         void markLayerClean(int frameIndex, int layerIndex);
+
+        float getLayerOpacity(int frameIndex, int layerIndex) const;
+        bool isLayerVisible(int frameIndex, int layerIndex) const;
+        const Canvas& getLayerCanvas(int frameIndex, int layerIndex) const;
 };
 
