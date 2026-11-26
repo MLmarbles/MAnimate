@@ -2,6 +2,8 @@ from database import base
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy import CheckConstraint, UniqueConstraint
+from sqlalchemy import Uuid
+from uuid import uuid4
 
 class Frame(base):
     __tablename__ = "Frame"
@@ -15,7 +17,11 @@ class Frame(base):
         ),
     )
 
-    id = Column(Integer, primary_key = True)
+    id = Column(
+        Uuid(as_uuid=True),
+        primary_key=True,
+        default=uuid4
+    )
     project_id = Column(
         Integer,
         ForeignKey("Project.id"),

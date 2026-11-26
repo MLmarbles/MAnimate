@@ -2,6 +2,8 @@ from database import base
 from sqlalchemy import Boolean, Column, String, Integer, ForeignKey, DateTime, Float, func
 from sqlalchemy.orm import relationship
 from sqlalchemy import CheckConstraint, UniqueConstraint
+from sqlalchemy import Uuid
+from uuid import uuid4
 
 class Layer(base):
     __tablename__ = "Layer"
@@ -19,9 +21,13 @@ class Layer(base):
         ),
     )
 
-    id = Column(Integer, primary_key=True)
+    id = Column(
+        Uuid(as_uuid=True),
+        primary_key=True,
+        default=uuid4
+    )
     frame_id = Column(
-        Integer,
+        Uuid(as_uuid=True),
         ForeignKey("Frame.id"),
         nullable=False,
         index=True

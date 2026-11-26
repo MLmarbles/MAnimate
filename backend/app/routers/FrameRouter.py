@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from dto import FrameDTO
 from security import get_current_user
@@ -60,7 +62,7 @@ def reorder_frames(
 @router.get("/{frame_id}", response_model=FrameDTO.FrameDetailResponse)
 def get_frame(
     project_id: int,
-    frame_id: int,
+    frame_id: UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -75,7 +77,7 @@ def get_frame(
 @router.delete("/{frame_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 def delete_frame(
     project_id: int,
-    frame_id: int,
+    frame_id: UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

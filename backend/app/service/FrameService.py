@@ -1,3 +1,6 @@
+from uuid import UUID
+
+from sqlalchemy import func
 from repository import FrameRepository, LayerRepository
 from sqlalchemy.orm import Session
 from models.User import User
@@ -37,6 +40,7 @@ def create(db: Session, project_id: int, user: User):
             name="Layer 1",
         )
 
+        project.updated_at = func.now()
         db.commit()
 
     except Exception:
@@ -47,7 +51,7 @@ def create(db: Session, project_id: int, user: User):
     return frame
 
 
-def get(db: Session, project_id: int, frame_id: int, user: User):
+def get(db: Session, project_id: int, frame_id: UUID, user: User):
     ProjectService.get(db, project_id, user)
     frame = FrameRepository.get_frame(db, project_id, frame_id)
     if frame is None:
@@ -60,9 +64,9 @@ def list_frames(db: Session, project_id: int, user: User):
     return FrameRepository.get_frames(db, project_id)
 
 
-def reorder(db: Session, project_id: int, frame_ids: list[int], user: User):
+def reorder(db: Session, project_id: int, frame_ids: list[UUID], user: User):
     try:
-        ProjectService.get(db, project_id, user)
+        project = ProjectService.get(db, project_id, user)
         frames = FrameRepository.get_frames(db, project_id)
         frames_by_id = {frame.id: frame for frame in frames}
         if len(frame_ids) != len(frames) or set(frame_ids) != set(frames_by_id):
@@ -70,6 +74,7 @@ def reorder(db: Session, project_id: int, frame_ids: list[int], user: User):
 
         ordered_frames = [frames_by_id[frame_id] for frame_id in frame_ids]
         FrameRepository.reorder_frames(db, ordered_frames)
+        project.updated_at = func.now()
         db.commit()
     except Exception:
         db.rollback()
@@ -78,7 +83,7 @@ def reorder(db: Session, project_id: int, frame_ids: list[int], user: User):
     return ordered_frames
 
 
-def delete(db: Session, project_id: int, frame_id: int, user: User):
+def delete(db: Session, project_id: int, frame_id: UUID, user: User):
     storage_keys = []
     try:
         frame = get(db, project_id, frame_id, user)
@@ -86,9 +91,11 @@ def delete(db: Session, project_id: int, frame_id: int, user: User):
             raise LastFrame()
 
         storage_keys = [layer.storage_key for layer in frame.layers if layer.storage_key]
+        project = frame.project
         FrameRepository.delete_frame(db, frame)
         frames = FrameRepository.get_frames(db, project_id)
         FrameRepository.reorder_frames(db, frames)
+        project.updated_at = func.now()
         db.commit()
     except Exception:
         db.rollback()

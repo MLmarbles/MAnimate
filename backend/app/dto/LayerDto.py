@@ -1,5 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from uuid import UUID
 
 class LayerCreate(BaseModel):
     name: str
@@ -8,7 +9,7 @@ class LayerCreate(BaseModel):
 class LayerReorder(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    layer_ids: list[int]
+    layer_ids: list[UUID]
 
 
 class LayerUpdate(BaseModel):
@@ -29,8 +30,8 @@ class LayerUpdate(BaseModel):
 class LayerResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
-    frame_id: int
+    id: UUID
+    frame_id: UUID
     name: str | None
     position: int
     visible: bool

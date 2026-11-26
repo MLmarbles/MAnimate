@@ -1,10 +1,10 @@
 from pathlib import Path
-from uuid import uuid4
+from uuid import uuid4, UUID
 
 STORAGE_ROOT = Path("storage")
 
 
-def save_layer(project_id: int, layer_id: int, data: bytes) -> str:
+def save_layer(project_id: int, layer_id: UUID, data: bytes) -> str:
     directory = (
         STORAGE_ROOT
         / "projects"

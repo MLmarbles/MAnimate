@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, HTTPException, Response, UploadFile, status, Depends
 from fastapi.params import File
 from dto import LayerDTO
@@ -19,7 +21,7 @@ router = APIRouter(
 )
 def create_layer(
     project_id: int,
-    frame_id: int,
+    frame_id: UUID,
     layer: LayerDTO.LayerCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -41,7 +43,7 @@ def create_layer(
 )
 def list_layers(
     project_id: int,
-    frame_id: int,
+    frame_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -62,7 +64,7 @@ def list_layers(
 )
 def reorder_layers(
     project_id: int,
-    frame_id: int,
+    frame_id: UUID,
     order: LayerDTO.LayerReorder,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -89,8 +91,8 @@ def reorder_layers(
 )
 def get_layer(
     project_id: int,
-    frame_id: int,
-    layer_id: int,
+    frame_id: UUID,
+    layer_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -116,8 +118,8 @@ def get_layer(
 )
 def update_layer(
     project_id: int,
-    frame_id: int,
-    layer_id: int,
+    frame_id: UUID,
+    layer_id: UUID,
     layer: LayerDTO.LayerUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -145,8 +147,8 @@ def update_layer(
 )
 def delete_layer(
     project_id: int,
-    frame_id: int,
-    layer_id: int,
+    frame_id: UUID,
+    layer_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -165,12 +167,17 @@ def delete_layer(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Layer not found",
         ) from None
+    except LayerService.LastLayer:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete the last layer"
+        ) from None
 
 @router.put("/{layer_id}/content")
 async def upload_layer_content(
     project_id: int,
-    frame_id: int,
-    layer_id: int,
+    frame_id: UUID,
+    layer_id: UUID,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -199,8 +206,8 @@ async def upload_layer_content(
 @router.get("/{layer_id}/content")
 async def get_layer_content(
     project_id: int,
-    frame_id: int,
-    layer_id: int,
+    frame_id: UUID,
+    layer_id: UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

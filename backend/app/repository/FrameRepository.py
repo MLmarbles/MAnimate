@@ -1,18 +1,29 @@
+from uuid import UUID
+
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from models.Frame import Frame
 
-def create_frame(db: Session, project_id: int, position: int):
+
+def create_frame(
+    db: Session,
+    project_id: int,
+    position: int,
+    frame_id: UUID | None = None,
+):
     frame = Frame(
         project_id=project_id,
         position=position
     )
 
+    if frame_id is not None:
+        frame.id = frame_id
+
     db.add(frame)
     db.flush()
     return frame
 
-def get_frame(db: Session, project_id: int, frame_id: int):
+def get_frame(db: Session, project_id: int, frame_id: UUID):
     return (
         db.query(Frame)
         .filter(

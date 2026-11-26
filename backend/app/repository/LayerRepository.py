@@ -1,9 +1,16 @@
+from uuid import UUID
+
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from models.Layer import Layer
 
 
-def create_layer(db: Session, frame_id: int, name: str):
+def create_layer(
+    db: Session,
+    frame_id: UUID,
+    name: str,
+    layer_id: UUID | None = None,
+):
     last_position = (
         db.query(func.max(Layer.position))
         .filter(Layer.frame_id == frame_id)
@@ -14,12 +21,15 @@ def create_layer(db: Session, frame_id: int, name: str):
         name=name,
         position=0 if last_position is None else last_position + 1,
     )
+    if layer_id is not None:
+        layer.id = layer_id
+
     db.add(layer)
     db.flush()
     return layer
 
 
-def get_layer(db: Session, frame_id: int, layer_id: int):
+def get_layer(db: Session, frame_id: UUID, layer_id: UUID):
     return (
         db.query(Layer)
         .filter(Layer.frame_id == frame_id, Layer.id == layer_id)
@@ -27,7 +37,7 @@ def get_layer(db: Session, frame_id: int, layer_id: int):
     )
 
 
-def list_layers(db: Session, frame_id: int):
+def list_layers(db: Session, frame_id: UUID):
     return (
         db.query(Layer)
         .filter(Layer.frame_id == frame_id)
@@ -58,3 +68,9 @@ def delete_layer(db: Session, layer: Layer):
     db.delete(layer)
     db.flush()
 
+def count_layers(db: Session, frame_id: UUID):
+    return (
+        db.query(func.count(Layer.id))
+        .filter(Layer.frame_id == frame_id)
+        .scalar()
+    )

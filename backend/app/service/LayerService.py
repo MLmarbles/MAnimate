@@ -1,3 +1,6 @@
+from uuid import UUID
+
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from dto.LayerDTO import LayerUpdate
 from models.User import User
@@ -14,12 +17,16 @@ class InvalidLayerOrder(Exception):
 class ContentNotFound(Exception):
     pass
 
-def create(db: Session, project_id: int, frame_id: int, name: str, user: User):
+class LastLayer(Exception):
+    pass
+
+def create(db: Session, project_id: int, frame_id: UUID, name: str, user: User):
     try:
         frame = FrameService.get(db, project_id, frame_id, user)
         layer = LayerRepository.create_layer(
             db=db, frame_id=frame.id, name=name
         )
+        frame.project.updated_at = func.now()
         db.commit()
     except Exception:
         db.rollback()
@@ -29,7 +36,7 @@ def create(db: Session, project_id: int, frame_id: int, name: str, user: User):
     return layer
 
 
-def get(db: Session, project_id: int, frame_id: int, layer_id: int, user: User):
+def get(db: Session, project_id: int, frame_id: UUID, layer_id: UUID, user: User):
     FrameService.get(db, project_id, frame_id, user)
     layer = LayerRepository.get_layer(db, frame_id, layer_id)
     if layer is None:
@@ -37,14 +44,14 @@ def get(db: Session, project_id: int, frame_id: int, layer_id: int, user: User):
     return layer
 
 
-def list_layers(db: Session, project_id: int, frame_id: int, user: User):
+def list_layers(db: Session, project_id: int, frame_id: UUID, user: User):
     FrameService.get(db, project_id, frame_id, user)
     return LayerRepository.list_layers(db, frame_id)
 
 
-def reorder(db: Session, project_id: int, frame_id: int, layer_ids: list[int], user: User):
+def reorder(db: Session, project_id: int, frame_id: UUID, layer_ids: list[UUID], user: User):
     try:
-        FrameService.get(db, project_id, frame_id, user)
+        frame = FrameService.get(db, project_id, frame_id, user)
         layers = LayerRepository.list_layers(db, frame_id)
         layers_by_id = {layer.id: layer for layer in layers}
         if len(layer_ids) != len(layers) or set(layer_ids) != set(layers_by_id):
@@ -52,6 +59,7 @@ def reorder(db: Session, project_id: int, frame_id: int, layer_ids: list[int], u
 
         ordered_layers = [layers_by_id[layer_id] for layer_id in layer_ids]
         LayerRepository.reorder_layers(db, ordered_layers)
+        frame.project.updated_at = func.now()
         db.commit()
     except Exception:
         db.rollback()
@@ -60,10 +68,11 @@ def reorder(db: Session, project_id: int, frame_id: int, layer_ids: list[int], u
     return ordered_layers
 
 
-def update(db: Session, project_id: int, frame_id: int, layer_id: int, changes: LayerUpdate, user: User):
+def update(db: Session, project_id: int, frame_id: UUID, layer_id: UUID, changes: LayerUpdate, user: User):
     try:
         layer = get(db, project_id, frame_id, layer_id, user)
         LayerRepository.update_layer(db, layer, changes.model_dump(exclude_unset=True))
+        layer.frame.project.updated_at = func.now()
         db.commit()
     except Exception:
         db.rollback()
@@ -73,13 +82,20 @@ def update(db: Session, project_id: int, frame_id: int, layer_id: int, changes: 
     return layer
 
 
-def delete(db: Session, project_id: int, frame_id: int, layer_id: int, user: User):
+def delete(db: Session, project_id: int, frame_id: UUID, layer_id: UUID, user: User):
     storage_key = None
+
     try:
         layer = get(db, project_id, frame_id, layer_id, user)
+        
+        if LayerRepository.count_layers(db, frame_id) <= 1:
+            raise LastLayer()
+
         storage_key = layer.storage_key
+        project = layer.frame.project
         LayerRepository.delete_layer(db, layer)
         LayerRepository.reorder_layers(db, LayerRepository.list_layers(db, frame_id))
+        project.updated_at = func.now()
         db.commit()
     except Exception:
         db.rollback()
@@ -95,8 +111,8 @@ def delete(db: Session, project_id: int, frame_id: int, layer_id: int, user: Use
 def save_content(
     db: Session,
     project_id: int,
-    frame_id: int,
-    layer_id: int,
+    frame_id: UUID,
+    layer_id: UUID,
     data: bytes,
     user: User,
 ):
@@ -107,6 +123,7 @@ def save_content(
     try:
         new_storage_key = StorageService.save_layer(project_id, layer_id, data)
         LayerRepository.update_layer(db, layer, {"storage_key": new_storage_key})
+        layer.frame.project.updated_at = func.now()
         db.commit()
     except Exception:
         db.rollback()
@@ -124,8 +141,8 @@ def save_content(
 def get_content(
     db: Session,
     project_id: int,
-    frame_id: int,
-    layer_id: int,
+    frame_id: UUID,
+    layer_id: UUID,
     user: User,
 ):
     layer = get(db, project_id, frame_id, layer_id, user)
