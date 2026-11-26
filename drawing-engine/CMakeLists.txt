@@ -19,8 +19,9 @@ add_executable(drawing_engine
     src/LayerStack.cpp
     src/Frame.cpp
     src/Timeline.cpp
+    utils/UUID.cpp
 
     )
 
-target_include_directories(drawing_engine PRIVATE include)
+target_include_directories(drawing_engine PRIVATE include utils)
 target_link_libraries(drawing_engine PRIVATE SDL3::SDL3)

@@ -1,9 +1,24 @@
 #include "Layer.hpp"
 #include "History.hpp"
+#include "UUID.h"
 #include <algorithm>
+#include <utility>
 
 Layer::Layer(int width, int height) 
-    : canvas_(width, height) {}
+    : Layer(width, height, UUID::generate()) {}
+
+Layer::Layer(int width, int height, std::string id)
+    : id_(std::move(id)), canvas_(width, height) {}
+
+const std::string& Layer::getId() const {
+    return id_;
+}
+
+Layer Layer::duplicate() const {
+    Layer duplicate = *this;
+    duplicate.id_ = UUID::generate();
+    return duplicate;
+}
 
 void Layer::setOpacity(float opacity) {
     opacity_ = std::clamp(opacity_ + opacity, 0.0f, 1.0f);

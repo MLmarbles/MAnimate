@@ -39,3 +39,4 @@ std::string UUID::generate() {
     }
 
     return stream.str();
+}

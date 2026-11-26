@@ -1,6 +1,8 @@
 #include "Timeline.hpp"
 #include "Frame.hpp"
 #include <stdexcept>
+#include <utility>
+#include "Layer.hpp"
 
 
 Timeline::Timeline(int width, int height)
@@ -54,9 +56,15 @@ int Timeline::getCurrentFrameIndex() const {
 }
 
 void Timeline::duplicateFrame() {
+    Frame duplicate(width_, height_);
+    duplicate.getLayerStack() = frames_.at(currentFrameIndex_).getLayerStack();
+    for (int index = 0; index <= duplicate.getLayerStack().getLayerIndexes(); ++index) {
+        Layer& layer = duplicate.getLayerStack().getLayer(index);
+        layer = layer.duplicate();
+    }
     frames_.insert(
         frames_.begin() + currentFrameIndex_ + 1,
-        frames_.at(currentFrameIndex_)
+        std::move(duplicate)
     );
 
     currentFrameIndex_++;

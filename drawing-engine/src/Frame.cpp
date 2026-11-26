@@ -1,15 +1,25 @@
 #include "Frame.hpp"
 #include "LayerStack.hpp"
 #include "Color.hpp"
+#include "UUID.h"
+#include <utility>
 
 Frame::Frame(int width, int height)
-    : layerStack_(LayerStack(width, height)) 
+    : Frame(width, height, UUID::generate())
+{}
+
+Frame::Frame(int width, int height, std::string id)
+    : id_(std::move(id)), layerStack_(LayerStack(width, height))
 {
     layerStack_.addLayer();
 
     layerStack_.getLayer(0).getCanvas().clear(
         Color{0, 0, 0, 0}.pack()
     );
+}
+
+const std::string& Frame::getId() const {
+    return id_;
 }
 
 LayerStack& Frame::getLayerStack() {
