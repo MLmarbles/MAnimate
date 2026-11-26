@@ -4,19 +4,22 @@
 #include "UUID.h"
 #include <utility>
 #include <string>
+#include <InitializationMode.hpp>
 
-Frame::Frame(int width, int height)
-    : Frame(width, height, UUID::generate())
+Frame::Frame(int width, int height, InitializationMode mode)
+    : Frame(width, height, UUID::generate(), mode)
 {}
 
-Frame::Frame(int width, int height, std::string id)
+Frame::Frame(int width, int height, std::string id, InitializationMode mode)
     : id_(std::move(id)), layerStack_(LayerStack(width, height))
 {
-    layerStack_.addLayer();
+    if (mode == InitializationMode::Default) {
+        layerStack_.addLayer();
 
-    layerStack_.getLayer(0).getCanvas().clear(
-        Color{0, 0, 0, 0}.pack()
-    );
+        layerStack_.getLayer(0).getCanvas().clear(
+            Color{0, 0, 0, 0}.pack()
+        );
+    }
 }
 
 const std::string& Frame::getId() const {

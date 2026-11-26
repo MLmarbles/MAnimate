@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "Frame.hpp"
+#include "InitializationMode.hpp"
 
 class Timeline {
 private:
@@ -11,7 +12,7 @@ private:
     int height_;
     
 public:
-    Timeline(int width, int height);
+    Timeline(int width, int height, InitializationMode mode);
 
     void addFrame();
     void removeFrame(int index);

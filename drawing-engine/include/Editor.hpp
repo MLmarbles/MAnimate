@@ -3,6 +3,7 @@
 #include "BrushTool.hpp"
 #include "EraserTool.hpp"
 #include "Tool.hpp"
+#include "InitializationMode.hpp"
 
 class Editor {
     private:
@@ -16,7 +17,7 @@ class Editor {
         Tool* activeTool_;
 
     public:
-        Editor(int width, int height);
+        Editor(int width, int height, InitializationMode mode = InitializationMode::Default);
 
         void addFrame();
         void duplicateFrame();

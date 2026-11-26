@@ -5,10 +5,12 @@
 #include "Layer.hpp"
 
 
-Timeline::Timeline(int width, int height)
+Timeline::Timeline(int width, int height, InitializationMode mode)
     : width_(width), height_(height)
 {
-    frames_.emplace_back(Frame(width_, height_));
+    if (mode == InitializationMode::Default) {
+        frames_.emplace_back(width_, height_);
+    }
 }
 
 void Timeline::addFrame() {

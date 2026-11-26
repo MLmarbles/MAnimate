@@ -2,9 +2,10 @@
 #include "Color.hpp"
 #include <algorithm>
 #include <string>
+#include "InitializationMode.hpp"
 
-Editor::Editor(int width, int height) 
-    : timeline_(width, height),
+Editor::Editor(int width, int height, InitializationMode mode) 
+    : timeline_(width, height, mode),
       activeLayerIndex_(0),
       onionMode_(true),
       isPlaying_(false),
