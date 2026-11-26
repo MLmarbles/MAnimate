@@ -137,11 +137,13 @@ void Editor::moveFrameRight() {
 void Editor::undo() {
     Layer& layer = getLayerStack().getLayer(activeLayerIndex_);
     layer.getHistory().undo(layer.getCanvas());
+    layer.markDirty();
 }
 
 void Editor::redo() {
     Layer& layer = getLayerStack().getLayer(activeLayerIndex_);
     layer.getHistory().redo(layer.getCanvas());
+    layer.markDirty();
 }
 
 void Editor::onMouseDown(int x, int y, bool useEraser) {
@@ -151,12 +153,14 @@ void Editor::onMouseDown(int x, int y, bool useEraser) {
     activeTool_ = useEraser ? static_cast<Tool*>(&eraser_) : &brush_;
     layer.getHistory().save(canvas);
     activeTool_->onMouseDown(canvas, x, y);
+    layer.markDirty();
 }
 
 void Editor::onMouseMove(int x, int y) {
     if (isPlaying_) return;
     if (activeTool_ != nullptr) {
         activeTool_->onMouseMove(getActiveLayer().getCanvas(), x, y);
+        getActiveLayer().markDirty();
     }
 }
 
@@ -165,6 +169,7 @@ void Editor::onMouseUp(int x, int y) {
     if (activeTool_ != nullptr) {
         activeTool_->onMouseUp(getActiveLayer().getCanvas(), x, y);
         activeTool_ = nullptr;
+        getActiveLayer().markDirty();
     }
 }
 
@@ -245,6 +250,12 @@ int Editor::getLayerCount() {
     return timeline_.getCurrentFrame().getLayerStack().getLayerIndexes()+1;
 }
 
+int Editor::getLayerCount(int frameIndex) const {
+    return timeline_.getFrame(frameIndex)
+        .getLayerStack()
+        .getLayerIndexes() + 1;
+}
+
 int Editor::getWidth() const {
     return timeline_.getWidth();
 }
@@ -254,9 +265,17 @@ int Editor::getHeight() const {
 }
 
 std::string Editor::getFrameId(int frameIndex) const {
-    return timeline_.getCurrentFrame().getId();
+    return timeline_.getFrame(frameIndex).getId();
 }
 
 std::string Editor::getLayerId(int frameIndex, int layerIndex) const {
     return timeline_.getFrame(frameIndex).getLayerStack().getLayer(layerIndex).getId();
+}
+
+bool Editor::isLayerDirty(int frameIndex, int layerIndex) const {
+    return timeline_.getFrame(frameIndex).getLayerStack().getLayer(layerIndex).isDirty();
+}
+
+void Editor::markLayerClean(int frameIndex, int layerIndex) {
+    timeline_.getFrame(frameIndex).getLayerStack().getLayer(layerIndex).markClean();
 }

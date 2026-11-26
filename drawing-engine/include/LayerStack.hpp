@@ -17,4 +17,5 @@ class LayerStack{
         void moveLayer(int fromIndex, int toIndex);
         void removeLayer(int index);
         int getLayerIndexes();
+        int LayerStack::getLayerIndexes() const;
 };

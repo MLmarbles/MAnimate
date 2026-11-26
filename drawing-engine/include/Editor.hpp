@@ -64,10 +64,14 @@ class Editor {
         void goToFrame(int index);
         void selectLayer(int index);
         int getLayerCount();
+        int getLayerCount(int frameIndex) const;
         int getWidth() const;
         int getHeight() const;
 
         std::string getFrameId(int frameIndex) const;
         std::string getLayerId(int frameIndex, int layerIndex) const;
+
+        bool isLayerDirty(int frameIndex, int layerIndex) const;
+        void markLayerClean(int frameIndex, int layerIndex);
 };
 

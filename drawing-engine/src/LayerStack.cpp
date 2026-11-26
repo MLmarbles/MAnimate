@@ -89,3 +89,7 @@ void LayerStack::removeLayer(int index) {
 int LayerStack::getLayerIndexes() {
     return layers_.size()-1;
 }
+
+int LayerStack::getLayerIndexes() const {
+    return layers_.size()-1;
+}

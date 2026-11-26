@@ -17,6 +17,7 @@ const std::string& Layer::getId() const {
 Layer Layer::duplicate() const {
     Layer duplicate = *this;
     duplicate.id_ = UUID::generate();
+    duplicate.markDirty();
     return duplicate;
 }
 
@@ -46,4 +47,16 @@ const Canvas& Layer::getCanvas() const {
 
 History& Layer::getHistory() {
     return history_;
+}
+
+bool Layer::isDirty() const {
+    return dirty_;
+}
+
+void Layer::markDirty() {
+    dirty_ = true;
+}
+
+void Layer::markClean() {
+    dirty_ = false;
 }

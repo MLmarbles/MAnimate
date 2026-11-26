@@ -11,6 +11,8 @@ class Layer{
         bool visible_ = true;
         History history_;
 
+        bool dirty_ = true;
+
     public:
         Layer(int width, int height);
         Layer(int width, int height, std::string id);
@@ -24,4 +26,8 @@ class Layer{
         Canvas& getCanvas();
         const Canvas& getCanvas() const;
         History& getHistory();
+
+        bool isDirty() const;
+        void markDirty();
+        void markClean();
 };
