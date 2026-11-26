@@ -1,6 +1,7 @@
 #include "Editor.hpp"
 #include "Color.hpp"
 #include <algorithm>
+#include <string>
 
 Editor::Editor(int width, int height) 
     : timeline_(width, height),
@@ -250,4 +251,12 @@ int Editor::getWidth() const {
 
 int Editor::getHeight() const {
     return timeline_.getHeight();
+}
+
+std::string Editor::getFrameId(int frameIndex) const {
+    return timeline_.getCurrentFrame().getId();
+}
+
+std::string Editor::getLayerId(int frameIndex, int layerIndex) const {
+    return timeline_.getFrame(frameIndex).getLayerStack().getLayer(layerIndex).getId();
 }

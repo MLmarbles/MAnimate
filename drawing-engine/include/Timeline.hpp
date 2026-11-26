@@ -16,6 +16,9 @@ public:
     void addFrame();
     void removeFrame(int index);
     Frame& getCurrentFrame();
+    const Frame& getCurrentFrame() const;
+    Frame& getFrame(int index);
+    const Frame& getFrame(int index) const;
     void nextFrame();
     void previousFrame();
     int getFrameCount() const;

@@ -12,4 +12,5 @@ class Frame{
         Frame(int width, int height, std::string id);
         const std::string& getId() const;
         LayerStack& getLayerStack();
+        const LayerStack& getLayerStack() const;
 };

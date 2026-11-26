@@ -35,6 +35,18 @@ Frame& Timeline::getCurrentFrame() {
     return frames_.at(currentFrameIndex_);
 }
 
+const Frame& Timeline::getCurrentFrame() const {
+    return frames_.at(currentFrameIndex_);
+}
+
+Frame& Timeline::getFrame(int index) {
+    return frames_.at(index);
+}
+
+const Frame& Timeline::getFrame(int index) const {
+    return frames_.at(index);
+}
+
 void Timeline::nextFrame() {
     if (currentFrameIndex_ < frames_.size()-1) {
         currentFrameIndex_ += 1;

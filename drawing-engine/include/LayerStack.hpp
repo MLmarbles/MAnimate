@@ -12,6 +12,7 @@ class LayerStack{
         LayerStack(int width, int height);
         void addLayer();
         Layer& getLayer(int index);
+        const Layer& getLayer(int index) const;
         Canvas composite() const;
         void moveLayer(int fromIndex, int toIndex);
         void removeLayer(int index);

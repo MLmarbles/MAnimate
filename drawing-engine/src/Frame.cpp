@@ -3,6 +3,7 @@
 #include "Color.hpp"
 #include "UUID.h"
 #include <utility>
+#include <string>
 
 Frame::Frame(int width, int height)
     : Frame(width, height, UUID::generate())
@@ -23,5 +24,9 @@ const std::string& Frame::getId() const {
 }
 
 LayerStack& Frame::getLayerStack() {
+    return layerStack_;
+}
+
+const LayerStack& Frame::getLayerStack() const {
     return layerStack_;
 }

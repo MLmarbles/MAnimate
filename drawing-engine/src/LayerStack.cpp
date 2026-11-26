@@ -15,6 +15,10 @@ Layer& LayerStack::getLayer(int index) {
     return layers_.at(index);
 }
 
+const Layer& LayerStack::getLayer(int index) const {
+    return layers_.at(index);
+}
+
 Canvas LayerStack::composite() const {
     Canvas result(width_, height_);
 

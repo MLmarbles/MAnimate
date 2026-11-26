@@ -67,6 +67,7 @@ class Editor {
         int getWidth() const;
         int getHeight() const;
 
-
+        std::string getFrameId(int frameIndex) const;
+        std::string getLayerId(int frameIndex, int layerIndex) const;
 };
 
