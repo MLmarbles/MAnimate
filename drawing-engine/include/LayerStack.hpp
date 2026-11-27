@@ -11,6 +11,7 @@ class LayerStack{
     public:
         LayerStack(int width, int height);
         void addLayer();
+        void addLayer(Layer layer);
         Layer& getLayer(int index);
         const Layer& getLayer(int index) const;
         Canvas composite() const;

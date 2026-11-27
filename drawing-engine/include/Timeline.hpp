@@ -15,6 +15,7 @@ public:
     Timeline(int width, int height, InitializationMode mode);
 
     void addFrame();
+    void addFrame(Frame frame);
     void removeFrame(int index);
     Frame& getCurrentFrame();
     const Frame& getCurrentFrame() const;

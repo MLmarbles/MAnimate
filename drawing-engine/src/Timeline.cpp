@@ -18,6 +18,11 @@ void Timeline::addFrame() {
     currentFrameIndex_ = frames_.size()-1;
 }
 
+void Timeline::addFrame(Frame frame) {
+    frames_.push_back(std::move(frame));
+    currentFrameIndex_ = frames_.size() - 1;
+}
+
 void Timeline::removeFrame(int index) {
     if (index < 0 || index >= frames_.size()) {
         throw std::out_of_range("Invalid frame index");

@@ -11,6 +11,10 @@ void LayerStack::addLayer() {
     layers_.emplace_back(width_, height_);
 }
 
+void LayerStack::addLayer(Layer layer) {
+    layers_.push_back(std::move(layer));
+}
+
 Layer& LayerStack::getLayer(int index) {
     return layers_.at(index);
 }
