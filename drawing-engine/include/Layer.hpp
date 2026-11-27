@@ -24,6 +24,7 @@ class Layer{
         void toggleVisible();
         float getOpacity() const;
         bool isVisible() const;
+        void setVisible(bool visible);
         Canvas& getCanvas();
         const Canvas& getCanvas() const;
         History& getHistory();

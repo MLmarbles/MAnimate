@@ -37,6 +37,10 @@ bool Layer::isVisible() const {
     return visible_;
 }
 
+void Layer::setVisible(bool visible) {
+    visible_ = visible;
+}
+
 Canvas& Layer::getCanvas() {
     return canvas_;
 }

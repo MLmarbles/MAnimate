@@ -19,4 +19,7 @@ class Canvas {
         void clear(std::uint32_t color);
 
         const std::vector<std::uint32_t>& getPixels() const;
+
+        std::vector<uint8_t> exportRGBA() const;
+        void importRGBA(const std::vector<uint8_t>& data);
 };
